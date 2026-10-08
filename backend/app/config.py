@@ -8,6 +8,7 @@ class Config:
     SQLALCHEMY_DATABASE_URI = os.environ.get("DATABASE_URL")
     GITHUB_CLIENT_ID = os.environ.get("GITHUB_CLIENT_ID")
     GITHUB_CLIENT_SECRET = os.environ.get("GITHUB_CLIENT_SECRET")
+    TOKEN_ENCRYPTION_KEY = os.environ.get("TOKEN_ENCRYPTION_KEY")
 
 
 class DevelopmentConfig(Config):
