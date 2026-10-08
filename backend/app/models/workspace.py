@@ -1,7 +1,7 @@
 import enum
 import uuid
 from datetime import datetime
-from sqlalchemy import DateTime, ForeignKey, UniqueConstraint, String, Enum 
+from sqlalchemy import DateTime, ForeignKey, UniqueConstraint, String, Enum, CheckConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.extensions import db
 from app.models.base import utcnow
@@ -25,7 +25,11 @@ class Workspace(db.Model):
 
 class Membership(db.Model):
     __tablename__ = 'memberships'
-    __table_args__ = (UniqueConstraint("user_id", "workspace_id", name="uq_membership_user_workspace"),)
+    __table_args__ = (UniqueConstraint("user_id", "workspace_id", name="uq_membership_user_workspace"),
+            CheckConstraint("role IN (" + ", ".join(f"'{r.value}'" for r in Role) + ")", name="ck_membership_role",
+        ),
+                      
+    )
 
     id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
     user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey('users.id', ondelete='CASCADE'), index=True)

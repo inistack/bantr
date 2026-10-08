@@ -1,8 +1,8 @@
 """initial schema
 
-Revision ID: 95281ce92003
+Revision ID: 61a8fbd9f78e
 Revises: 
-Create Date: 2026-10-08 10:28:26.000556
+Create Date: 2026-10-08 11:06:31.217155
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '95281ce92003'
+revision = '61a8fbd9f78e'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -78,6 +78,7 @@ def upgrade():
     sa.Column('workspace_id', sa.Uuid(), nullable=False),
     sa.Column('role', sa.Enum('owner', 'admin', 'member', name='role', native_enum=False, length=20), nullable=False),
     sa.Column('joined_at', sa.DateTime(timezone=True), nullable=False),
+    sa.CheckConstraint("role IN ('owner', 'admin', 'member')", name='ck_membership_role'),
     sa.ForeignKeyConstraint(['user_id'], ['users.id'], ondelete='CASCADE'),
     sa.ForeignKeyConstraint(['workspace_id'], ['workspaces.id'], ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('id'),
