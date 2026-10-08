@@ -14,6 +14,8 @@ def create_app(config_name=None):
 
     db.init_app(app)
     migrate.init_app(app, db)
+    
+    from app.models import User, OAuthAccount  
 
     from app.api.health import health_bp
     
