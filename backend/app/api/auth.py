@@ -3,6 +3,9 @@ from authlib.integrations.base_client import OAuthError
 from flask import jsonify, url_for, current_app, Blueprint
 from app.extensions import oauth
 from app.services.auth_service import login_with_oauth
+from flask import g
+from app.auth.decorators import COOKIE_NAME, login_required
+from app.auth.tokens import issue_token
 
 auth_bp = Blueprint('auth', __name__, url_prefix='/auth')
 
@@ -42,5 +45,30 @@ def github_callback():
         avatar_url=profile.get("avatar_url"),
         token=token,
     )
-    return jsonify(id=str(user.id), email=user.email, name=user.name)
+    token = issue_token(user.id)
+    resp = jsonify(id=str(user.id), email=user.email, name=user.name)
+    resp.set_cookie(
+        COOKIE_NAME,
+        token,
+        httponly=True,
+        samesite="Lax",
+        secure=current_app.config["COOKIE_SECURE"],
+        max_age=current_app.config["JWT_EXPIRES_MINUTES"] * 60,
+    )
+    return resp
 
+@auth_bp.get('/me')
+@login_required
+def me():
+    user = g.current_user
+    return jsonify(
+        id=str(user.id), email=user.email, name=user.name, avatar_url=user.avatar_url
+    )
+
+
+@auth_bp.post('/logout')
+@login_required
+def logout():
+    resp = jsonify(status="logged out")
+    resp.delete_cookie(COOKIE_NAME)
+    return resp
