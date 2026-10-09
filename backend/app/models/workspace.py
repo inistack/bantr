@@ -11,6 +11,7 @@ class Role(str, enum.Enum):
     ADMIN = 'admin'
     MEMBER = 'member'
 
+ROLE_RANK = {Role.MEMBER: 1, Role.ADMIN: 2, Role.OWNER: 3}
 
 class Workspace(db.Model):
     __tablename__ = 'workspaces'

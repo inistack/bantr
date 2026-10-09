@@ -1,6 +1,7 @@
 import os
 
-from flask import Flask
+from flask import Flask, jsonify
+from app.errors import AppError
 
 from app.config import config_by_name
 from app.extensions import db, migrate
@@ -22,9 +23,17 @@ def create_app(config_name=None):
 
     from app.api.health import health_bp
     from app.api.auth import auth_bp
+    from app.api.workspaces import workspace_bp
+    from app.errors import AppError
+    from flask import jsonify
 
+    @app.errorhandler(AppError)
+    def handle_app_error(err):
+        return jsonify(error=err.message), err.status_code
     
     app.register_blueprint(health_bp)
     app.register_blueprint(auth_bp)
+    app.register_blueprint(workspace_bp)
 
     return app
+
