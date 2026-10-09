@@ -12,13 +12,19 @@ def create_app(config_name=None):
     app = Flask(__name__)
     app.config.from_object(config_by_name[config_name])
 
+
     db.init_app(app)
     migrate.init_app(app, db)
-    
+    from app.auth.oauth import init_oauth
+    init_oauth(app)
+
     from app.models import User, OAuthAccount  
 
     from app.api.health import health_bp
+    from app.api.auth import auth_bp
+
     
     app.register_blueprint(health_bp)
+    app.register_blueprint(auth_bp)
 
     return app
