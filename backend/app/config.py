@@ -1,5 +1,6 @@
 import os
 from dotenv import load_dotenv
+from cryptography.fernet import Fernet
 
 load_dotenv()
 
@@ -20,6 +21,9 @@ class DevelopmentConfig(Config):
 class TestingConfig(Config):
     TESTING = True
     SQLALCHEMY_DATABASE_URI = os.environ.get("TEST_DATABASE_URL")
+    SECRET_KEY = "test-secret-key-for-sessions-only"
+    JWT_SECRET_KEY = "test-jwt-secret-key-at-least-32-bytes-long"
+    TOKEN_ENCRYPTION_KEY = Fernet.generate_key().decode()
 
 
 class ProductionConfig(Config):
