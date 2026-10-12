@@ -11,4 +11,5 @@ def get_in_workspace(model, workspace_id, obj_id):
     obj = db.session.scalar(scoped_select(model, workspace_id).where(model.id == obj_id))
     if obj is None:
         raise NotFound(f'{model.__name__} not found')
+    return obj
     
