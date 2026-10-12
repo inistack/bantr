@@ -24,6 +24,7 @@ def create_app(config_name=None):
     from app.api.health import health_bp
     from app.api.auth import auth_bp
     from app.api.workspaces import workspace_bp
+    from app.api.channels import channel_bp
     from app.errors import AppError
     from flask import jsonify
 
@@ -34,6 +35,7 @@ def create_app(config_name=None):
     app.register_blueprint(health_bp)
     app.register_blueprint(auth_bp)
     app.register_blueprint(workspace_bp)
+    app.register_blueprint(channel_bp)
 
     return app
 
