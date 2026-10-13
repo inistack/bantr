@@ -13,6 +13,7 @@ class Config:
     JWT_SECRET_KEY = os.environ.get("JWT_SECRET_KEY")
     JWT_EXPIRES_MINUTES = 60
     COOKIE_SECURE = False
+    SOCKETIO_CORS_ORIGINS = os.environ.get("CORS_ORIGINS", "http://localhost:5173").split(",")
 
 
 class DevelopmentConfig(Config):
