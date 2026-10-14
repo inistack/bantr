@@ -1,9 +1,12 @@
-from flask import Blueprint, g, jsonify, request
+from flask import Blueprint, g, jsonify, request, current_app
 
 from app.auth.decorators import require_role
 from app.errors import BadRequest
 from app.models import Role
 from app.services import message_service as svc
+from app.extensions import socketio
+from app.sockets import events
+from app.sockets.rooms import room_name
 
 message_bp = Blueprint('message', __name__, url_prefix='/workspaces/<uuid:workspace_id>/channels/<uuid:channel_id>/messages')
 
@@ -40,7 +43,18 @@ def send(workspace_id, channel_id):
     if len(body) > svc.MAX_BODY:
         raise BadRequest(f'body must be at most {svc.MAX_BODY} characters')
     message = svc.send_message(workspace_id, channel_id, g.current_user, body)
-    return jsonify(_json(message)), 201
+    payload = _json(message)
+
+    try:
+        socketio.emit(
+            events.MESSAGE_SENT,
+            {"channel_id": str(channel_id), "message": payload},
+            to=room_name(workspace_id, channel_id),
+        )
+    except Exception:
+        current_app.logger.exception("failed to broadcast message.sent")
+
+    return jsonify(payload), 201
 
 
 @message_bp.get('')

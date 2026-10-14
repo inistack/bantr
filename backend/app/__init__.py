@@ -4,7 +4,7 @@ from flask import Flask, jsonify
 from app.errors import AppError
 
 from app.config import config_by_name
-from app.extensions import db, migrate
+from app.extensions import db, migrate,socketio
 
 
 def create_app(config_name=None):
@@ -20,6 +20,11 @@ def create_app(config_name=None):
     init_oauth(app)
 
     from app.models import User, OAuthAccount  
+    socketio.init_app(
+        app, async_mode='threading', cors_allowed_origins=app.config.get("SOCKETIO_CORS_ORIGINS")
+    )
+    from app.sockets import connection
+    from app.sockets import channels as socket_channels
 
     from app.api.health import health_bp
     from app.api.auth import auth_bp

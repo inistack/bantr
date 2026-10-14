@@ -19,7 +19,7 @@ def create_workspace(user, name, slug):
 
 def list_workspaces(user):
     rows = db.session.execute(
-        select(User, Membership.role)
+        select(Workspace, Membership.role)
         .join(Membership, Membership.workspace_id == Workspace.id)
         .where(Membership.user_id == user.id)
         .order_by(Workspace.name)
@@ -54,3 +54,11 @@ def add_member(workspace_id, actor_membership, email, role):
 def delete_workspace(workspace):
     db.session.delete(workspace)
     db.session.commit()
+
+def get_membership(user_id, workspace_id):
+    return db.session.scalar(
+        select(Membership).where(
+            Membership.user_id == user_id,
+            Membership.workspace_id == workspace_id,
+        )
+    )
