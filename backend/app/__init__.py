@@ -21,7 +21,8 @@ def create_app(config_name=None):
 
     from app.models import User, OAuthAccount  
     socketio.init_app(
-        app, async_mode='threading', cors_allowed_origins=app.config.get("SOCKETIO_CORS_ORIGINS")
+        app, async_mode='threading', cors_allowed_origins=app.config.get("SOCKETIO_CORS_ORIGINS"), 
+        message_queue=app.config["REDIS_URL"],
     )
     from app.sockets import connection
     from app.sockets import channels as socket_channels

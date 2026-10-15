@@ -3,8 +3,11 @@
 Usage: python -m scripts.socket_listen TOKEN WORKSPACE_ID CHANNEL_ID
 """
 import sys
-
+import os
 import socketio
+
+URL = os.environ.get("BANTR_URL", "http://localhost:5000")
+
 
 token, workspace_id, channel_id = sys.argv[1:4]
 sio = socketio.Client()
@@ -13,7 +16,7 @@ for name in ("connected", "message.sent", "user.joined", "user.left"):
     sio.on(name, lambda data, name=name: print(f"<- {name}: {data}"))
 
 sio.connect(
-    "http://localhost:5000",
+    URL,
     auth={"token": token},
     transports=["websocket"],
     wait_timeout=10,

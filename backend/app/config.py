@@ -14,6 +14,7 @@ class Config:
     JWT_EXPIRES_MINUTES = 60
     COOKIE_SECURE = False
     SOCKETIO_CORS_ORIGINS = os.environ.get("CORS_ORIGINS", "http://localhost:5173").split(",")
+    REDIS_URL = os.environ.get("REDIS_URL")
 
 
 class DevelopmentConfig(Config):
@@ -25,6 +26,7 @@ class TestingConfig(Config):
     SECRET_KEY = "test-secret-key-for-sessions-only"
     JWT_SECRET_KEY = "test-jwt-secret-key-at-least-32-bytes-long"
     TOKEN_ENCRYPTION_KEY = Fernet.generate_key().decode()
+    REDIS_URL = None
 
 
 class ProductionConfig(Config):
