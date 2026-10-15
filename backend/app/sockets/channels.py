@@ -21,8 +21,8 @@ def _authorize(data):
         raise BadRequest('workspace_id and channel_id are required')
     
     user_id = connected_users.get(request.sid)
-    if user_id is None and get_membership(user_id, workspace_id) is None:
-        raise NotFound('channel not found')
+    if user_id is None or get_membership(user_id, workspace_id) is None:
+        raise NotFound('Channel not found')
     
     channel = channel_service.get_channel(workspace_id, channel_id)
     return user_id, workspace_id, channel
