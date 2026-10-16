@@ -12,7 +12,7 @@ URL = os.environ.get("BANTR_URL", "http://localhost:5000")
 token, workspace_id, channel_id = sys.argv[1:4]
 sio = socketio.Client()
 
-for name in ("connected", "message.sent", "user.joined", "user.left"):
+for name in ("connected", "message.sent", "user.joined", "user.left", "user.typing"):
     sio.on(name, lambda data, name=name: print(f"<- {name}: {data}"))
 
 sio.connect(

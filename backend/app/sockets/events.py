@@ -1,3 +1,5 @@
 MESSAGE_SENT = "message.sent"
 USER_JOINED = "user.joined"
 USER_LEFT = "user.left"
+MESSAGE_SENT = "message.sent"
+USER_TYPING = "user.typing"
