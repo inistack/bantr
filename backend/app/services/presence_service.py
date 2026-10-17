@@ -19,7 +19,7 @@ def user_is_live(r, workspace_id, user_id, now, ttl):
     return any(m.startswith(prefix) for m in _live_members(r, workspace_id, now, ttl))
 
 
-def online_users_ids(r, workspace_id, now, ttl):
+def online_user_ids(r, workspace_id, now, ttl):
     return sorted({_user_of(m) for m in _live_members(r, workspace_id, now, ttl)})
 
 
