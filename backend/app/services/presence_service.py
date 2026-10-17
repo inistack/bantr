@@ -23,7 +23,7 @@ def online_users_ids(r, workspace_id, now, ttl):
     return sorted({_user_of(m) for m in _live_members(r, workspace_id, now, ttl)})
 
 
-def add_connection(r, workspace_ids, user_id, sid, now, ttl) -> list:
+def add_connection(r, workspace_ids, user_id, sid, now, ttl):
     """Register a connection. Returns the workspaces where the user just came online."""
     came_online = []
     for ws in workspace_ids:
@@ -34,7 +34,7 @@ def add_connection(r, workspace_ids, user_id, sid, now, ttl) -> list:
     return came_online
 
 
-def remove_connection(r, workspace_ids, user_id, sid, now, ttl) -> list:
+def remove_connection(r, workspace_ids, user_id, sid, now, ttl):
     """Unregister a connection. Returns the workspaces where the user just went offline."""
     went_offline = []
     for ws in workspace_ids:
@@ -44,7 +44,7 @@ def remove_connection(r, workspace_ids, user_id, sid, now, ttl) -> list:
     return went_offline
 
 
-def heartbeat(r, entries, now) -> list:
+def heartbeat(r, entries, now):
     """Refresh connections. `entries` is [(workspace_ids, user_id, sid), ...].
 
     Returns (workspace_id, user_id) pairs whose entry had been *missing* and was
@@ -60,7 +60,7 @@ def heartbeat(r, entries, now) -> list:
     return [pair for pair, added in zip(order, results) if added]
 
 
-def reap_stale(r, workspace_id, now, ttl) -> list[str]:
+def reap_stale(r, workspace_id, now, ttl):
     """Remove expired entries. Returns users who went offline because of it.
 
     Only the caller whose ZREM actually removed an entry reports it, so several
@@ -73,3 +73,4 @@ def reap_stale(r, workspace_id, now, ttl) -> list[str]:
             if not user_is_live(r, workspace_id, user_id, now, ttl):
                 went_offline.add(user_id)
     return sorted(went_offline)
+
