@@ -18,6 +18,8 @@ def create_app(config_name=None):
     migrate.init_app(app, db)
     from app.auth.oauth import init_oauth
     init_oauth(app)
+    from app.redis_client import init_redis
+    init_redis(app)
 
     from app.models import User, OAuthAccount  
     socketio.init_app(

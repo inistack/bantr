@@ -62,3 +62,10 @@ def get_membership(user_id, workspace_id):
             Membership.workspace_id == workspace_id,
         )
     )
+
+
+def workspace_ids_for_user(user_id):
+    return db.session.scalars(
+        select(Membership.workspace_id).where(Membership.user_id == user_id)
+    ).all()
+

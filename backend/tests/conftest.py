@@ -7,10 +7,13 @@ from app import create_app
 from app.auth.tokens import issue_token
 from app.extensions import db
 from app.models import User
+import fakeredis
+from app.sockets.state import connected_users, connection_workspaces
 
 @pytest.fixture(scope='session')
 def app():
     app = create_app('testing')
+    app.extensions["redis"] = fakeredis.FakeRedis(decode_responses=True)
     uri = app.config["SQLALCHEMY_DATABASE_URI"] or ""
     assert uri.rsplit("/", 1)[-1].endswith("_test"), f"Refusing to run tests on {uri!r}"
     with app.app_context():
@@ -26,6 +29,9 @@ def app():
 def _clean_db(app):
     """After every test, empty all tables."""
     yield
+    connected_users.clear()
+    connection_workspaces.clear()
+    app.extensions["redis"].flushall()
     with app.app_context():
         db.session.remove()
         tables = ", ".join(t.name for t in db.metadata.sorted_tables)

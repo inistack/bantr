@@ -52,7 +52,7 @@ def test_connections_expire_when_not_refreshed(r):
 
 def test_heartbeat_keeps_a_connection_alive(r):
     p.add_connection(r, ["w1"], "alice", "s1", 1000, TTL)
-    p.heartbeat(r, [(["w1"], "alice", "s1")], now=1025)
+    p.heartbeat(r, [(["w1"], "alice", "s1")], now=1025, ttl=TTL)
     assert p.online_user_ids(r, "w1", 1050, TTL) == ["alice"]
 
 
@@ -72,5 +72,17 @@ def test_reaper_does_not_report_a_user_who_still_has_a_live_connection(r):
 def test_heartbeat_reports_entries_that_had_been_reaped(r):
     p.add_connection(r, ["w1"], "alice", "s1", 1000, TTL)
     p.reap_stale(r, "w1", now=1100, ttl=TTL)
-    assert p.heartbeat(r, [(["w1"], "alice", "s1")], now=1101) == [("w1", "alice")]
-    assert p.heartbeat(r, [(["w1"], "alice", "s1")], now=1102) == []  
+    assert p.heartbeat(r, [(["w1"], "alice", "s1")], now=1101, ttl=TTL) == [("w1", "alice")]
+    assert p.heartbeat(r, [(["w1"], "alice", "s1")], now=1102, ttl=TTL) == []  
+
+
+def test_presence_key_gets_an_expiry_when_written(r):
+    p.add_connection(r, ["w1"], "alice", "s1", 1000, TTL)
+    assert 0 < r.ttl("presence:ws:w1") <= TTL * 2
+
+
+def test_heartbeat_pushes_the_key_expiry_forward(r):
+    p.add_connection(r, ["w1"], "alice", "s1", 1000, TTL)
+    r.expire("presence:ws:w1", 5)  
+    p.heartbeat(r, [(["w1"], "alice", "s1")], now=1001, ttl=TTL)
+    assert r.ttl("presence:ws:w1") > TTL

@@ -29,6 +29,7 @@ def add_connection(r, workspace_ids, user_id, sid, now, ttl):
     for ws in workspace_ids:
         was_online = user_is_live(r, ws, user_id, now, ttl)
         r.zadd(_key(ws), {_member(user_id, sid): now})
+        r.expire(_key(ws), _key_ttl(ttl))
         if not was_online:
             came_online.append(ws)
     return came_online
@@ -44,7 +45,7 @@ def remove_connection(r, workspace_ids, user_id, sid, now, ttl):
     return went_offline
 
 
-def heartbeat(r, entries, now):
+def heartbeat(r, entries, now, ttl):
     """Refresh connections. `entries` is [(workspace_ids, user_id, sid), ...].
 
     Returns (workspace_id, user_id) pairs whose entry had been *missing* and was
@@ -56,6 +57,8 @@ def heartbeat(r, entries, now):
         for ws in workspace_ids:
             pipe.zadd(_key(ws), {_member(user_id, sid): now})
             order.append((ws, user_id))
+    for ws in {ws for ws, _ in order}:
+        pipe.expire(_key(ws), _key_ttl(ttl))
     results = pipe.execute()
     return [pair for pair, added in zip(order, results) if added]
 
@@ -73,4 +76,9 @@ def reap_stale(r, workspace_id, now, ttl):
             if not user_is_live(r, workspace_id, user_id, now, ttl):
                 went_offline.add(user_id)
     return sorted(went_offline)
+
+
+def _key_ttl(ttl):
+    """How long the whole key survives without a write: twice the connection TTL."""
+    return ttl * 2
 

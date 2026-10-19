@@ -9,6 +9,7 @@ from app.auth.tokens import decode_token
 from app.extensions import db, socketio
 from app.models import User
 from app.sockets.state import connected_users, forget
+from app.sockets import presence as socket_presence
 
 
 def _extract_token(auth) -> str | None:
@@ -34,6 +35,7 @@ def on_connect(auth):
         raise ConnectionRefusedError("invalid token")
 
     connected_users[request.sid] = user.id
+    socket_presence.on_connect(request.sid, user.id)
     current_app.logger.info("socket connected sid=%s user=%s", request.sid, user.id)
     emit("connected", {"user_id": str(user.id)})
 
@@ -42,6 +44,8 @@ def on_connect(auth):
 def on_disconnect(*args):
     user_id = connected_users.pop(request.sid, None)
     forget(request.sid)
+    if user_id is not None:
+        socket_presence.on_disconnect(request.sid, user_id)
     current_app.logger.info("socket disconnected sid=%s user=%s", request.sid, user_id)
 
 
