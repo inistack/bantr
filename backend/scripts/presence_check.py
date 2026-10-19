@@ -55,8 +55,8 @@ before = owner.call("presence.list", {"workspace_id": WS}, timeout=5)["online"]
 print("online before Bob connects:", before)
 check("Bob is not shown online before he connects (no ghost entries)", bob_id not in before)
 
-bob, ev_bob = connect(URL_BOB, BOB)
 t_connect = time.time()
+bob, ev_bob = connect(URL_BOB, BOB)
 arrived = wait_for(lambda: about(ev_owner, bob_id, True), 5)
 latency = f"({about(ev_owner, bob_id, True)[0][0] - t_connect:.2f}s)" if arrived else ""
 check("Bob's arrival was announced to the owner on the other server", arrived, latency)
