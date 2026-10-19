@@ -15,6 +15,8 @@ class Config:
     COOKIE_SECURE = False
     SOCKETIO_CORS_ORIGINS = os.environ.get("CORS_ORIGINS", "http://localhost:5173").split(",")
     REDIS_URL = os.environ.get("REDIS_URL")
+    PRESENCE_TTL_SECONDS = 30
+    PRESENCE_HEARTBEAT_SECONDS = 10
 
 
 class DevelopmentConfig(Config):
