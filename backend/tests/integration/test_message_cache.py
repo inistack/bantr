@@ -127,3 +127,26 @@ def test_sending_still_works_when_redis_is_down(app, client, make_user, monkeypa
     owner, ws, ch = setup(client, make_user)
     monkeypatch.setitem(app.extensions, "redis", BrokenRedis())
     assert send(client, owner, ws, ch, "while redis is down").status_code == 201
+
+
+def test_with_the_cache_turned_off_reads_never_touch_it(app, client, make_user, monkeypatch):
+    monkeypatch.setitem(app.config, "MESSAGE_CACHE_ENABLED", False)
+    owner, ws, ch = setup(client, make_user)
+    send(client, owner, ws, ch, "m0")
+    before = stats()
+    r = history(client, owner, ws, ch)
+    assert [m["body"] for m in r.get_json()] == ["m0"]
+    assert stats() == before
+    assert app.extensions["redis"].exists(cache_key(ws, ch)) == 0
+
+
+def test_a_server_that_skips_the_cache_cannot_make_it_serve_stale_data(
+    app, client, make_user, monkeypatch
+):
+    owner, ws, ch = setup(client, make_user)
+    send(client, owner, ws, ch, "m0")
+    history(client, owner, ws, ch)  
+    with monkeypatch.context() as patch:
+        patch.setitem(app.config, "MESSAGE_CACHE_ENABLED", False)
+        send(client, owner, ws, ch, "m1")  
+    assert [m["body"] for m in history(client, owner, ws, ch).get_json()] == ["m0", "m1"]

@@ -17,6 +17,7 @@ class Config:
     REDIS_URL = os.environ.get("REDIS_URL")
     PRESENCE_TTL_SECONDS = 30
     PRESENCE_HEARTBEAT_SECONDS = 10
+    MESSAGE_CACHE_ENABLED = os.environ.get("MESSAGE_CACHE_ENABLED", "1") == "1"
 
 
 class DevelopmentConfig(Config):
@@ -29,6 +30,7 @@ class TestingConfig(Config):
     JWT_SECRET_KEY = "test-jwt-secret-key-at-least-32-bytes-long"
     TOKEN_ENCRYPTION_KEY = Fernet.generate_key().decode()
     REDIS_URL = None
+    MESSAGE_CACHE_ENABLED = True
 
 
 class ProductionConfig(Config):

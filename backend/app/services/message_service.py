@@ -95,11 +95,11 @@ def recent_messages(workspace_id, channel_id, limit=50):
 
     Served from the Redis cache when it is complete and current, else from Postgres."""
     limit = max(1, min(limit, MAX_LIMIT))
-    channel = get_channel(workspace_id, channel_id)  # scoped lookup first, always
+    channel = get_channel(workspace_id, channel_id) 
     if channel.last_seq == 0:
         return []
 
-    r = get_redis()
+    r = get_redis() if current_app.config["MESSAGE_CACHE_ENABLED"] else None
     if r is None or limit > message_cache.CACHE_SIZE:
         # No cache configured, or the request is bigger than the window we keep.
         return _from_database(workspace_id, channel, limit)
@@ -119,7 +119,7 @@ def recent_messages(workspace_id, channel_id, limit=50):
 
 def cache_new_message(workspace_id, channel_id, payload):
     """Write-through: add a just-committed message (already serialized) to the cache."""
-    r = get_redis()
+    r = get_redis() if current_app.config["MESSAGE_CACHE_ENABLED"] else None
     if r is None:
         return
     try:
