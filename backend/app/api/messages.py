@@ -7,21 +7,10 @@ from app.services import message_service as svc
 from app.extensions import socketio
 from app.sockets import events
 from app.sockets.rooms import room_name
+from app.serializers import message_to_dict as _json
 
 message_bp = Blueprint('message', __name__, url_prefix='/workspaces/<uuid:workspace_id>/channels/<uuid:channel_id>/messages')
 
-def _json(m):
-    return {
-        "id": str(m.id),
-        "seq": m.seq,
-        "body": m.body,
-        "created_at": m.created_at.isoformat(),
-        "user": {
-            "id": str(m.user.id),
-            "name": m.user.name,
-            "avatar_url": m.user.avatar_url,
-        },
-    }
 
 def _int_arg(name):
     raw = request.args.get(name)
