@@ -44,7 +44,10 @@ def _authorize(data):
 
 def _user_payload(user_id, channel_id):
     user = db.session.get(User, user_id)
-    return {"channel_id": str(channel_id), "user": {"id": str(user.id), "name": user.name}}
+    return {
+        "channel_id": str(channel_id),
+        "user": {"id": str(user.id), "name": user.name},
+    }
 
 
 @socketio.on("channel.join")
@@ -56,11 +59,16 @@ def on_join(data=None):
         return {"ok": False, "error": err.message}
 
     room = room_name(workspace_id, channel.id)
-    join_room(room)  
-    emit(events.USER_JOINED, _user_payload(user_id, channel.id), to=room, include_self=False)
+    join_room(room)
+    emit(
+        events.USER_JOINED,
+        _user_payload(user_id, channel.id),
+        to=room,
+        include_self=False,
+    )
 
     ack = {"ok": True, "last_seq": channel.last_seq}
-    if after is not None:  
+    if after is not None:
         missed = message_service.list_messages(
             workspace_id, channel.id, after=after, limit=message_service.MAX_LIMIT
         )
@@ -78,7 +86,12 @@ def on_leave(data=None):
 
     room = room_name(workspace_id, channel.id)
     leave_room(room)
-    emit(events.USER_LEFT, _user_payload(user_id, channel.id), to=room, include_self=False)
+    emit(
+        events.USER_LEFT,
+        _user_payload(user_id, channel.id),
+        to=room,
+        include_self=False,
+    )
     return {"ok": True}
 
 

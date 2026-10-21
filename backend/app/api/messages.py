@@ -33,6 +33,7 @@ def send(workspace_id, channel_id):
         raise BadRequest(f'body must be at most {svc.MAX_BODY} characters')
     message = svc.send_message(workspace_id, channel_id, g.current_user, body)
     payload = _json(message)
+    svc.cache_new_message(workspace_id, channel_id, payload)
 
     try:
         socketio.emit(
@@ -49,8 +50,11 @@ def send(workspace_id, channel_id):
 @message_bp.get('')
 @require_role(Role.MEMBER)
 def history(workspace_id, channel_id):
-    limit = _int_arg('limit') or 50
+    limit = _int_arg("limit") or 50
+    after, before = _int_arg("after"), _int_arg("before")
+    if after is None and before is None:
+        return jsonify(svc.recent_messages(workspace_id, channel_id, limit))
     rows = svc.list_messages(
-        workspace_id, channel_id, after=_int_arg('after'), before=_int_arg('before'), limit=limit
+        workspace_id, channel_id, after=after, before=before, limit=limit
     )
     return jsonify([_json(m) for m in rows])
