@@ -26,6 +26,9 @@ def create_app(config_name=None):
         app, async_mode='threading', cors_allowed_origins=app.config.get("SOCKETIO_CORS_ORIGINS"), 
         message_queue=app.config["REDIS_URL"],
     )
+    from app.rate_limit import limiter
+    limiter.init_app(app)
+
     from app.sockets import connection
     from app.sockets import channels as socket_channels
 
@@ -40,6 +43,10 @@ def create_app(config_name=None):
     @app.errorhandler(AppError)
     def handle_app_error(err):
         return jsonify(error=err.message), err.status_code
+    
+    @app.errorhandler(429)
+    def handle_rate_limit(err):
+        return jsonify(error="Too many requests. Slow down and retry shortly.", limit=str(err.description)), 429
     
     app.register_blueprint(health_bp)
     app.register_blueprint(auth_bp)

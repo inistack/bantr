@@ -8,6 +8,7 @@ from app.extensions import socketio
 from app.sockets import events
 from app.sockets.rooms import room_name
 from app.serializers import message_to_dict as _json
+from app.rate_limit import limiter, rate_limit_key
 
 message_bp = Blueprint('message', __name__, url_prefix='/workspaces/<uuid:workspace_id>/channels/<uuid:channel_id>/messages')
 
@@ -23,6 +24,7 @@ def _int_arg(name):
     
 
 @message_bp.post('')
+@limiter.limit(lambda: current_app.config["MESSAGE_RATE_LIMIT"], key_func=rate_limit_key)
 @require_role(Role.MEMBER)
 def send(workspace_id, channel_id):
     data = request.get_json(silent=True) or {}

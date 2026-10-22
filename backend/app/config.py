@@ -18,6 +18,12 @@ class Config:
     PRESENCE_TTL_SECONDS = 30
     PRESENCE_HEARTBEAT_SECONDS = 10
     MESSAGE_CACHE_ENABLED = os.environ.get("MESSAGE_CACHE_ENABLED", "1") == "1"
+    MESSAGE_RATE_LIMIT = os.environ.get("MESSAGE_RATE_LIMIT", "5 per second;60 per minute")
+    RATELIMIT_STORAGE_URI = os.environ.get("REDIS_URL") or "memory://"
+    RATELIMIT_STRATEGY = "moving-window"
+    RATELIMIT_HEADERS_ENABLED = True
+    RATELIMIT_SWALLOW_ERRORS = True
+    RATELIMIT_IN_MEMORY_FALLBACK_ENABLED = True
 
 
 class DevelopmentConfig(Config):
@@ -31,6 +37,8 @@ class TestingConfig(Config):
     TOKEN_ENCRYPTION_KEY = Fernet.generate_key().decode()
     REDIS_URL = None
     MESSAGE_CACHE_ENABLED = True
+    RATELIMIT_STORAGE_URI = "memory://"
+    MESSAGE_RATE_LIMIT = "100000 per second"
 
 
 class ProductionConfig(Config):
