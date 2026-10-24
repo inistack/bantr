@@ -24,6 +24,8 @@ class Config:
     RATELIMIT_HEADERS_ENABLED = True
     RATELIMIT_SWALLOW_ERRORS = True
     RATELIMIT_IN_MEMORY_FALLBACK_ENABLED = True
+    LOG_FORMAT = os.environ.get("LOG_FORMAT", "console")
+    LOG_LEVEL = os.environ.get("LOG_LEVEL", "INFO")
 
 
 class DevelopmentConfig(Config):
@@ -39,6 +41,7 @@ class TestingConfig(Config):
     MESSAGE_CACHE_ENABLED = True
     RATELIMIT_STORAGE_URI = "memory://"
     MESSAGE_RATE_LIMIT = "100000 per second"
+    LOG_LEVEL = "WARNING"
 
 
 class ProductionConfig(Config):

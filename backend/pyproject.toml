@@ -19,7 +19,8 @@ dependencies = [
     "flask-socketio (>=5.7.0,<6.0.0)",
     "simple-websocket (>=1.1.0,<2.0.0)",
     "redis (>=8.1.0,<9.0.0)",
-    "flask-limiter (>=4.1.1,<5.0.0)"
+    "flask-limiter (>=4.1.1,<5.0.0)",
+    "structlog (>=26.1.0,<27.0.0)"
 ]
 
 
