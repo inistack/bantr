@@ -12,6 +12,12 @@ def create_app(config_name=None):
 
     app = Flask(__name__)
     app.config.from_object(config_by_name[config_name])
+    from app.logging_config import configure_logging
+    configure_logging(app.config["LOG_FORMAT"], app.config["LOG_LEVEL"])
+
+    from app.request_logging import init_request_logging
+    init_request_logging(app)
+
 
 
     db.init_app(app)
