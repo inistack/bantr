@@ -1,4 +1,5 @@
 import uuid
+import structlog
 
 import jwt
 from flask import current_app, request
@@ -10,6 +11,9 @@ from app.extensions import db, socketio
 from app.models import User
 from app.sockets.state import connected_users, forget
 from app.sockets import presence as socket_presence
+
+
+log = structlog.get_logger(__name__)
 
 
 def _extract_token(auth) -> str | None:
@@ -36,7 +40,7 @@ def on_connect(auth):
 
     connected_users[request.sid] = user.id
     socket_presence.on_connect(request.sid, user.id)
-    current_app.logger.info("socket connected sid=%s user=%s", request.sid, user.id)
+    log.info("socket.connected", sid=request.sid, user_id=str(user.id))
     emit("connected", {"user_id": str(user.id)})
 
 
@@ -46,7 +50,7 @@ def on_disconnect(*args):
     forget(request.sid)
     if user_id is not None:
         socket_presence.on_disconnect(request.sid, user_id)
-    current_app.logger.info("socket disconnected sid=%s user=%s", request.sid, user_id)
+    log.info("socket.disconnected", sid=request.sid, user_id=str(user_id) if user_id else None)
 
 
 @socketio.on("whoami")

@@ -13,6 +13,11 @@ from app import metrics
 from app.redis_client import get_redis
 from app.serializers import message_to_dict
 from app.services import message_cache
+import structlog
+
+
+log = structlog.get_logger(__name__)
+
 
 
 MAX_BODY = 4000
@@ -77,7 +82,7 @@ def _read_cache(r, workspace_id, channel):
     try:
         return message_cache.read(r, workspace_id, channel.id, channel.last_seq)
     except (redis.RedisError, ValueError, KeyError, TypeError):
-        current_app.logger.exception("message cache read failed")
+        log.exception("message_cache.read_failed")
         metrics.incr("cache_error")
         return None
 
@@ -86,7 +91,7 @@ def _fill_cache(r, workspace_id, channel, messages):
     try:
         message_cache.fill(r, workspace_id, channel.id, messages[-message_cache.CACHE_SIZE:])
     except redis.RedisError:
-        current_app.logger.exception("message cache fill failed")
+        log.exception("message_cache.fill_failed")
         metrics.incr("cache_error")
 
 
@@ -107,11 +112,11 @@ def recent_messages(workspace_id, channel_id, limit=50):
     window = _read_cache(r, workspace_id, channel)
     if window is not None:
         metrics.incr("cache_hit")
-        current_app.logger.info("message cache hit ws=%s ch=%s", workspace_id, channel.id)
+        log.info("message_cache.hit", workspace_id=str(workspace_id), channel_id=str(channel.id))
         return window[-limit:]
 
     metrics.incr("cache_miss")
-    current_app.logger.info("message cache miss ws=%s ch=%s", workspace_id, channel.id)
+    log.info("message_cache.miss", workspace_id=str(workspace_id), channel_id=str(channel.id))
     messages = _from_database(workspace_id, channel, message_cache.CACHE_SIZE)
     _fill_cache(r, workspace_id, channel, messages)
     return messages[-limit:]
@@ -126,5 +131,5 @@ def cache_new_message(workspace_id, channel_id, payload):
         message_cache.append(r, workspace_id, channel_id, payload)
     except redis.RedisError:
         # Harmless: the next read sees a stale window and rebuilds it.
-        current_app.logger.exception("message cache write-through failed")
+        log.exception("message_cache.write_through_failed")
         metrics.incr("cache_error")

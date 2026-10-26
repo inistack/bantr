@@ -9,7 +9,10 @@ from app.sockets import events
 from app.sockets.rooms import room_name
 from app.serializers import message_to_dict as _json
 from app.rate_limit import limiter, rate_limit_key
+import structlog
 
+
+log = structlog.get_logger(__name__)
 message_bp = Blueprint('message', __name__, url_prefix='/workspaces/<uuid:workspace_id>/channels/<uuid:channel_id>/messages')
 
 
@@ -35,6 +38,13 @@ def send(workspace_id, channel_id):
         raise BadRequest(f'body must be at most {svc.MAX_BODY} characters')
     message = svc.send_message(workspace_id, channel_id, g.current_user, body)
     payload = _json(message)
+    log.info(
+        "message.sent",
+        workspace_id=str(workspace_id),
+        channel_id=str(channel_id),
+        seq=message.seq,
+        user_id=str(g.current_user.id),
+    )
     svc.cache_new_message(workspace_id, channel_id, payload)
 
     try:
@@ -44,7 +54,7 @@ def send(workspace_id, channel_id):
             to=room_name(workspace_id, channel_id),
         )
     except Exception:
-        current_app.logger.exception("failed to broadcast message.sent")
+        log.exception("broadcast.failed", event_name="message.sent")
 
     return jsonify(payload), 201
 

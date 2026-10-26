@@ -1,10 +1,12 @@
 import os
+import structlog
 
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request
 from app.errors import AppError
 
 from app.config import config_by_name
 from app.extensions import db, migrate,socketio
+from app.rate_limit import rate_limit_key
 
 
 def create_app(config_name=None):
@@ -30,7 +32,7 @@ def create_app(config_name=None):
     from app.models import User, OAuthAccount  
     socketio.init_app(
         app, async_mode='threading', cors_allowed_origins=app.config.get("SOCKETIO_CORS_ORIGINS"), 
-        message_queue=app.config["REDIS_URL"],
+        message_queue=app.config["REDIS_URL"], logger=False
     )
     from app.rate_limit import limiter
     limiter.init_app(app)
@@ -52,6 +54,9 @@ def create_app(config_name=None):
     
     @app.errorhandler(429)
     def handle_rate_limit(err):
+        structlog.get_logger("rate_limit").warning(
+            "rate_limit.exceeded", key=rate_limit_key(), limit=str(err.description), path=request.path
+        )
         return jsonify(error="Too many requests. Slow down and retry shortly.", limit=str(err.description)), 429
     
     app.register_blueprint(health_bp)
