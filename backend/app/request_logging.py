@@ -4,11 +4,12 @@ import uuid
 
 import structlog
 from flask import g, request
+from app import metrics
 
 log = structlog.get_logger("http")
 
 _SAFE_ID = re.compile(r"^[A-Za-z0-9._-]{1,64}$")
-_QUIET_PATHS = {"/health", "/metrics"}  # logged at debug, so probes don't drown the log
+_QUIET_PATHS = {"/health", "/metrics"} 
 
 
 def init_request_logging(app):
@@ -23,17 +24,22 @@ def init_request_logging(app):
     @app.after_request
     def _finish_request(response):
         started = getattr(g, "request_started", None)
+        elapsed = time.perf_counter() - started if started else None
         response.headers["X-Request-ID"] = getattr(g, "request_id", "-")
         user = getattr(g, "current_user", None)
-        emit = log.debug if request.path in _QUIET_PATHS else log.info
-        emit(
+        quiet = request.path in _QUIET_PATHS
+        (log.debug if quiet else log.info)(
             "http.request",
             method=request.method,
             path=request.path,
             status=response.status_code,
-            duration_ms=round((time.perf_counter() - started) * 1000, 1) if started else None,
+            duration_ms=round(elapsed * 1000, 1) if elapsed is not None else None,
             user_id=str(user.id) if user else None,
         )
+        if not quiet and elapsed is not None:
+            route = request.url_rule.rule if request.url_rule else "unmatched"
+            metrics.HTTP_REQUESTS.labels(request.method, route, str(response.status_code)).inc()
+            metrics.HTTP_LATENCY.labels(route).observe(elapsed)
         return response
 
     @app.teardown_request
