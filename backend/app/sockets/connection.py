@@ -11,6 +11,7 @@ from app.extensions import db, socketio
 from app.models import User
 from app.sockets.state import connected_users, forget
 from app.sockets import presence as socket_presence
+from app import metrics
 
 
 log = structlog.get_logger(__name__)
@@ -39,6 +40,7 @@ def on_connect(auth):
         raise ConnectionRefusedError("invalid token")
 
     connected_users[request.sid] = user.id
+    metrics.SOCKET_CONNECTIONS.inc()
     socket_presence.on_connect(request.sid, user.id)
     log.info("socket.connected", sid=request.sid, user_id=str(user.id))
     emit("connected", {"user_id": str(user.id)})
@@ -50,6 +52,7 @@ def on_disconnect(*args):
     forget(request.sid)
     if user_id is not None:
         socket_presence.on_disconnect(request.sid, user_id)
+        metrics.SOCKET_CONNECTIONS.dec()
     log.info("socket.disconnected", sid=request.sid, user_id=str(user_id) if user_id else None)
 
 

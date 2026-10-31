@@ -10,6 +10,7 @@ from app.sockets.rooms import room_name
 from app.serializers import message_to_dict as _json
 from app.rate_limit import limiter, rate_limit_key
 import structlog
+from app import metrics
 
 
 log = structlog.get_logger(__name__)
@@ -45,6 +46,7 @@ def send(workspace_id, channel_id):
         seq=message.seq,
         user_id=str(g.current_user.id),
     )
+    metrics.MESSAGES_SENT.inc()
     svc.cache_new_message(workspace_id, channel_id, payload)
 
     try:
