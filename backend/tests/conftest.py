@@ -90,3 +90,17 @@ def r(request):
     client.flushdb()
     yield client
     client.flushdb()
+
+
+@pytest.fixture
+def real_redis_url():
+    real_redis_or_skip()  # skips, or fails when REQUIRE_REAL_REDIS=1, if Redis is unreachable
+    return REAL_REDIS_URL
+
+
+@pytest.fixture
+def real_redis(real_redis_url):
+    client = redis_lib.Redis.from_url(real_redis_url, decode_responses=True)
+    client.flushdb()
+    yield client
+    client.flushdb()
