@@ -1,6 +1,6 @@
 import redis
 
-from app import metrics
+from prometheus_client import REGISTRY
 from tests.helpers import create_channel, create_ws, send
 
 
@@ -27,7 +27,11 @@ def history(client, user, ws, ch, query=""):
 
 
 def stats():
-    return metrics.counters["cache_hit"], metrics.counters["cache_miss"]
+    def count(result):
+        return REGISTRY.get_sample_value(
+            "bantr_message_cache_requests_total", {"result": result}
+        ) or 0.0
+    return count("hit"), count("miss")
 
 
 def test_second_read_is_served_from_the_cache(client, make_user):

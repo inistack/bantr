@@ -32,7 +32,7 @@ def create_app(config_name=None):
     from app.models import User, OAuthAccount  
     socketio.init_app(
         app, async_mode='threading', cors_allowed_origins=app.config.get("SOCKETIO_CORS_ORIGINS"), 
-        message_queue=app.config["REDIS_URL"], logger=False
+        message_queue=app.config["REDIS_URL"], channel=app.config["SOCKETIO_CHANNEL"], logger=False
     )
     from app.rate_limit import limiter
     limiter.init_app(app)
@@ -45,6 +45,7 @@ def create_app(config_name=None):
     from app.api.workspaces import workspace_bp
     from app.api.channels import channel_bp
     from app.api.messages import message_bp
+    from app.api.metrics import bp as metrics_bp
     from app.errors import AppError
     from flask import jsonify
 
@@ -64,6 +65,8 @@ def create_app(config_name=None):
     app.register_blueprint(workspace_bp)
     app.register_blueprint(channel_bp)
     app.register_blueprint(message_bp)
+    app.register_blueprint(metrics_bp)
+
 
     return app
 

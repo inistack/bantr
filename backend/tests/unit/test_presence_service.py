@@ -1,16 +1,9 @@
-import fakeredis
 import pytest
+import time
 
 from app.services import presence_service as p
 
 TTL = 30
-
-
-@pytest.fixture
-def r():
-    client = fakeredis.FakeRedis(decode_responses=True)
-    yield client
-    client.flushall()
 
 
 def test_first_connection_brings_user_online_in_each_workspace(r):
@@ -86,3 +79,9 @@ def test_heartbeat_pushes_the_key_expiry_forward(r):
     r.expire("presence:ws:w1", 5)  
     p.heartbeat(r, [(["w1"], "alice", "s1")], now=1001, ttl=TTL)
     assert r.ttl("presence:ws:w1") > TTL
+
+def test_an_abandoned_workspace_key_disappears_on_its_own(r):
+    p.add_connection(r, ["w1"], "alice", "s1", time.time(), ttl=1)  
+    assert r.exists("presence:ws:w1") == 1
+    time.sleep(2.5)
+    assert r.exists("presence:ws:w1") == 0

@@ -26,6 +26,8 @@ class Config:
     RATELIMIT_IN_MEMORY_FALLBACK_ENABLED = True
     LOG_FORMAT = os.environ.get("LOG_FORMAT", "console")
     LOG_LEVEL = os.environ.get("LOG_LEVEL", "INFO")
+    METRICS_TOKEN = os.environ.get("METRICS_TOKEN")
+    SOCKETIO_CHANNEL = os.environ.get("SOCKETIO_CHANNEL", "bantr")
 
 
 class DevelopmentConfig(Config):
@@ -42,7 +44,19 @@ class TestingConfig(Config):
     RATELIMIT_STORAGE_URI = "memory://"
     MESSAGE_RATE_LIMIT = "100000 per second"
     LOG_LEVEL = "WARNING"
+    METRICS_TOKEN = None
 
+class E2EConfig(TestingConfig):
+    """Used by the real server processes that tests/e2e starts."""
+
+    TESTING = False  # the presence heartbeat is skipped when the app is in testing mode
+    REDIS_URL = os.environ.get("TEST_REDIS_URL", "redis://localhost:6379/15")
+    RATELIMIT_STORAGE_URI = REDIS_URL
+    MESSAGE_RATE_LIMIT = os.environ.get("E2E_MESSAGE_RATE_LIMIT", "100000 per second")
+    PRESENCE_TTL_SECONDS = 3
+    PRESENCE_HEARTBEAT_SECONDS = 1
+    SOCKETIO_CORS_ORIGINS = "*"  # random ports; test config only
+    LOG_LEVEL = "WARNING"
 
 class ProductionConfig(Config):
     DEBUG = False
@@ -53,5 +67,6 @@ config_by_name = {
     "development": DevelopmentConfig,
     "testing": TestingConfig,
     "production": ProductionConfig,
+    "e2e": E2EConfig,
 }
 

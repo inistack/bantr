@@ -1,4 +1,3 @@
-import fakeredis
 import pytest
 
 from app.services import message_cache as c
@@ -12,12 +11,6 @@ def msg(seq):
 def window(first, last):
     return [msg(s) for s in range(first, last + 1)]
 
-
-@pytest.fixture
-def r():
-    client = fakeredis.FakeRedis(decode_responses=True)
-    yield client
-    client.flushall()
 
 
 def test_an_empty_channel_reads_as_an_empty_window(r):
