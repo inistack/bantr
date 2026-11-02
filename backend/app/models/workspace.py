@@ -1,12 +1,19 @@
 import enum
 import uuid
 from datetime import datetime
-from sqlalchemy import DateTime, ForeignKey, UniqueConstraint, String, Enum, CheckConstraint
+from typing import TYPE_CHECKING
+
+from sqlalchemy import CheckConstraint, DateTime, Enum, ForeignKey, String, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+
 from app.extensions import db
 from app.models.base import utcnow
 
-class Role(str, enum.Enum):
+if TYPE_CHECKING:
+    from app.models.user import User
+
+
+class Role(str, enum.StrEnum):
     OWNER = 'owner'
     ADMIN = 'admin'
     MEMBER = 'member'

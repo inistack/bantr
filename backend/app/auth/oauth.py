@@ -1,5 +1,6 @@
 from app.extensions import oauth
 
+
 def init_oauth(app):
     oauth.init_app(app)
     oauth.register(

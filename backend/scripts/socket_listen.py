@@ -2,8 +2,9 @@
 
 Usage: python -m scripts.socket_listen TOKEN WORKSPACE_ID CHANNEL_ID
 """
-import sys
 import os
+import sys
+
 import socketio
 
 URL = os.environ.get("BANTR_URL", "http://localhost:5000")

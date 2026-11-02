@@ -1,20 +1,18 @@
+import redis
+import structlog
+from flask import current_app
 from sqlalchemy import update
 from sqlalchemy.orm import selectinload
 
+from app import metrics
 from app.errors import BadRequest, NotFound
 from app.extensions import db
 from app.models import Channel, Message
-from app.services.channel_service import get_channel
-from app.services.scoping import scoped_select
-import redis
-from flask import current_app
-
-from app import metrics
 from app.redis_client import get_redis
 from app.serializers import message_to_dict
 from app.services import message_cache
-import structlog
-
+from app.services.channel_service import get_channel
+from app.services.scoping import scoped_select
 
 log = structlog.get_logger(__name__)
 

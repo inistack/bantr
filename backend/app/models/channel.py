@@ -1,7 +1,22 @@
 import uuid
 from datetime import datetime
-from sqlalchemy import DateTime, ForeignKey, Text, UniqueConstraint, String, Boolean, BigInteger, ForeignKeyConstraint
-from sqlalchemy.orm import mapped_column, Mapped, relationship
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from app.models.user import User
+
+from sqlalchemy import (
+    BigInteger,
+    Boolean,
+    DateTime,
+    ForeignKey,
+    ForeignKeyConstraint,
+    String,
+    Text,
+    UniqueConstraint,
+)
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+
 from app.extensions import db
 from app.models.base import utcnow
 

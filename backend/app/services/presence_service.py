@@ -60,7 +60,8 @@ def heartbeat(r, entries, now, ttl):
     for ws in {ws for ws, _ in order}:
         pipe.expire(_key(ws), _key_ttl(ttl))
     results = pipe.execute()
-    return [pair for pair, added in zip(order, results) if added]
+    added = results[: len(order)]
+    return [pair for pair, was_added in zip(order, added, strict=True) if was_added]
 
 
 def reap_stale(r, workspace_id, now, ttl):

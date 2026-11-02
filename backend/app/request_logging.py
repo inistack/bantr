@@ -4,6 +4,7 @@ import uuid
 
 import structlog
 from flask import g, request
+
 from app import metrics
 
 log = structlog.get_logger("http")

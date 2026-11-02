@@ -55,7 +55,8 @@ def test_outsider_gets_404_on_every_endpoint_and_changes_nothing(
     assert r.status_code == 404
 
     with app.app_context():
-        count = lambda m: db.session.scalar(select(func.count()).select_from(m))
+        def count(model):
+            return db.session.scalar(select(func.count()).select_from(model))
         assert count(Workspace) == 2
         assert count(Channel) == 2
         assert count(Message) == 2

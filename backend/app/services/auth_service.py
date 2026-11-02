@@ -1,8 +1,11 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
+
 from sqlalchemy import select
-from app.extensions import db
-from app.models.user import User, OAuthAccount
+
 from app.auth.crypto import encrypt
+from app.extensions import db
+from app.models.user import OAuthAccount, User
+
 
 def login_with_oauth(*, provider, provider_user_id, email, name, avatar_url, token):
     account = db.session.scalar(
@@ -28,7 +31,7 @@ def login_with_oauth(*, provider, provider_user_id, email, name, avatar_url, tok
     account.access_token = encrypt(token.get("access_token"))
     account.refresh_token = encrypt(token.get("refresh_token"))
     account.expires_at = (
-            datetime.fromtimestamp(expires_at, tz=timezone.utc) if expires_at else None
+            datetime.fromtimestamp(expires_at, tz=UTC) if expires_at else None
     )
     db.session.commit()
     return account.user

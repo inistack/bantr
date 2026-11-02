@@ -1,6 +1,5 @@
 from prometheus_client import Counter, Gauge, Histogram
 
-
 SOCKET_CONNECTIONS = Gauge(
     "bantr_socket_connections", "Open Socket.IO connections on this process"
 )

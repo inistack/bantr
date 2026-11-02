@@ -1,9 +1,4 @@
 import json
-from app import metrics
-from app.redis_client import get_redis
-from flask import current_app
-from app.services import message_cache
-
 
 CACHE_SIZE = 50
 CACHE_TTL_SECONDS = 3600

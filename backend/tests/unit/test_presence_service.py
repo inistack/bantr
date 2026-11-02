@@ -1,4 +1,3 @@
-import pytest
 import time
 
 from app.services import presence_service as p

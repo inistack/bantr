@@ -1,11 +1,11 @@
 import requests
 from authlib.integrations.base_client import OAuthError
-from flask import jsonify, url_for, current_app, Blueprint
-from app.extensions import oauth
-from app.services.auth_service import login_with_oauth
-from flask import g
+from flask import Blueprint, current_app, g, jsonify, url_for
+
 from app.auth.decorators import COOKIE_NAME, login_required
 from app.auth.tokens import issue_token
+from app.extensions import oauth
+from app.services.auth_service import login_with_oauth
 
 auth_bp = Blueprint('auth', __name__, url_prefix='/auth')
 

@@ -1,18 +1,17 @@
 import uuid
-import structlog
 
 import jwt
-from flask import current_app, request
+import structlog
+from flask import request
 from flask_socketio import ConnectionRefusedError, emit
 
+from app import metrics
 from app.auth.decorators import COOKIE_NAME
 from app.auth.tokens import decode_token
 from app.extensions import db, socketio
 from app.models import User
-from app.sockets.state import connected_users, forget
 from app.sockets import presence as socket_presence
-from app import metrics
-
+from app.sockets.state import connected_users, forget
 
 log = structlog.get_logger(__name__)
 
@@ -35,7 +34,7 @@ def on_connect(auth):
         claims = decode_token(token)
         user = db.session.get(User, uuid.UUID(claims["sub"]))
     except (jwt.InvalidTokenError, ValueError):
-        raise ConnectionRefusedError("invalid token")
+        raise ConnectionRefusedError("invalid token") from None
     if user is None:
         raise ConnectionRefusedError("invalid token")
 

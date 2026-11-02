@@ -5,6 +5,7 @@ from app.extensions import db
 from app.models import Channel
 from app.services.scoping import get_in_workspace, scoped_select
 
+
 def create_channel(workspace_id, user, name):
     channel = Channel(workspace_id=workspace_id, name=name, created_by=user.id)
     db.session.add(channel)
@@ -12,7 +13,7 @@ def create_channel(workspace_id, user, name):
         db.session.commit()
     except IntegrityError:
         db.session.rollback()
-        raise Conflict(f'A channel with that name already exists')
+        raise Conflict('A channel with that name already exists') from None
     return channel
 
 

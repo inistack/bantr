@@ -1,6 +1,6 @@
 import redis
-
 from prometheus_client import REGISTRY
+
 from tests.helpers import create_channel, create_ws, send
 
 

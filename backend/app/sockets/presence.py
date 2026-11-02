@@ -3,6 +3,7 @@ import time
 import uuid
 
 import redis
+import structlog
 from flask import current_app, request
 from flask_socketio import join_room
 
@@ -13,7 +14,6 @@ from app.services.workspace_service import get_membership, workspace_ids_for_use
 from app.sockets import events
 from app.sockets.rooms import workspace_room
 from app.sockets.state import connected_users, connection_workspaces
-import structlog
 
 _started = False
 _start_lock = threading.Lock()

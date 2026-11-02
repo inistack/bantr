@@ -1,13 +1,14 @@
 import uuid
 from functools import wraps
-from flask import g, request, jsonify
-from app.models import User
-from app.auth.tokens import decode_token
-from app.extensions import db
+
 import jwt
+from flask import g, jsonify, request
 from sqlalchemy import select
-from app.errors import NotFound, Forbidden
-from app.models import ROLE_RANK, Role, Membership
+
+from app.auth.tokens import decode_token
+from app.errors import Forbidden, NotFound
+from app.extensions import db
+from app.models import ROLE_RANK, Membership, User
 
 COOKIE_NAME = 'bantr_token'
 

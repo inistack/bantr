@@ -1,17 +1,16 @@
-from flask import Blueprint, g, jsonify, request, current_app
+import structlog
+from flask import Blueprint, current_app, g, jsonify, request
 
+from app import metrics
 from app.auth.decorators import require_role
 from app.errors import BadRequest
-from app.models import Role
-from app.services import message_service as svc
 from app.extensions import socketio
+from app.models import Role
+from app.rate_limit import limiter, rate_limit_key
+from app.serializers import message_to_dict as _json
+from app.services import message_service as svc
 from app.sockets import events
 from app.sockets.rooms import room_name
-from app.serializers import message_to_dict as _json
-from app.rate_limit import limiter, rate_limit_key
-import structlog
-from app import metrics
-
 
 log = structlog.get_logger(__name__)
 message_bp = Blueprint('message', __name__, url_prefix='/workspaces/<uuid:workspace_id>/channels/<uuid:channel_id>/messages')
@@ -24,7 +23,7 @@ def _int_arg(name):
     try:
         return int(raw)
     except ValueError:
-        raise BadRequest(f'{name} must be an integer')
+        raise BadRequest(f'{name} must be an integer') from None
     
 
 @message_bp.post('')

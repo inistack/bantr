@@ -1,17 +1,16 @@
+import os
 from types import SimpleNamespace
 
+import fakeredis
 import pytest
-from sqlalchemy import text
-import os
 import redis as redis_lib
+from sqlalchemy import text
 
 from app import create_app
 from app.auth.tokens import issue_token
 from app.extensions import db
 from app.models import User
-import fakeredis
 from app.sockets.state import connected_users, connection_workspaces
-
 
 REAL_REDIS_URL = os.environ.get("TEST_REDIS_URL", "redis://localhost:6379/15")
 

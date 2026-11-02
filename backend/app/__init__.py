@@ -1,11 +1,11 @@
 import os
-import structlog
 
+import structlog
 from flask import Flask, jsonify, request
-from app.errors import AppError
 
 from app.config import config_by_name
-from app.extensions import db, migrate,socketio
+from app.errors import AppError
+from app.extensions import db, migrate, socketio
 from app.rate_limit import rate_limit_key
 
 
@@ -29,7 +29,6 @@ def create_app(config_name=None):
     from app.redis_client import init_redis
     init_redis(app)
 
-    from app.models import User, OAuthAccount  
     socketio.init_app(
         app, async_mode='threading', cors_allowed_origins=app.config.get("SOCKETIO_CORS_ORIGINS"), 
         message_queue=app.config["REDIS_URL"], channel=app.config["SOCKETIO_CHANNEL"], logger=False
@@ -37,17 +36,12 @@ def create_app(config_name=None):
     from app.rate_limit import limiter
     limiter.init_app(app)
 
-    from app.sockets import connection
-    from app.sockets import channels as socket_channels
-
-    from app.api.health import health_bp
     from app.api.auth import auth_bp
-    from app.api.workspaces import workspace_bp
     from app.api.channels import channel_bp
+    from app.api.health import health_bp
     from app.api.messages import message_bp
     from app.api.metrics import bp as metrics_bp
-    from app.errors import AppError
-    from flask import jsonify
+    from app.api.workspaces import workspace_bp
 
     @app.errorhandler(AppError)
     def handle_app_error(err):

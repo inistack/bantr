@@ -5,6 +5,7 @@ from app.errors import Conflict, Forbidden, NotFound
 from app.extensions import db
 from app.models import ROLE_RANK, Membership, Role, User, Workspace
 
+
 def create_workspace(user, name, slug):
     workspace = Workspace(name=name, slug=slug, created_by=user.id)
     workspace.memberships.append(Membership(user_id=user.id, role=Role.OWNER))
@@ -13,7 +14,7 @@ def create_workspace(user, name, slug):
         db.session.commit()
     except IntegrityError:
         db.session.rollback()
-        raise Conflict('That workspace URL name is already taken')
+        raise Conflict('That workspace URL name is already taken') from None
     return workspace
 
 
@@ -48,7 +49,7 @@ def add_member(workspace_id, actor_membership, email, role):
         db.session.commit()
     except IntegrityError:
         db.session.rollback()
-        raise Conflict('User is already a member')
+        raise Conflict('User is already a member') from None
     return user
 
 def delete_workspace(workspace):

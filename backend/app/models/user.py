@@ -1,9 +1,15 @@
 import uuid
 from datetime import datetime
-from sqlalchemy import DateTime, ForeignKey, Text, UniqueConstraint, String
+from typing import TYPE_CHECKING
+
+from sqlalchemy import DateTime, ForeignKey, String, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+
 from app.extensions import db
 from app.models.base import utcnow
+
+if TYPE_CHECKING:
+    from app.models.workspace import Membership
 
 
 class User(db.Model):

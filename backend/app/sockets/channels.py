@@ -6,20 +6,19 @@ from flask_socketio import emit, join_room, leave_room, rooms
 from app.errors import AppError, BadRequest, NotFound
 from app.extensions import db, socketio
 from app.models import User
-from app.services import channel_service
+from app.serializers import message_to_dict
+from app.services import channel_service, message_service
 from app.services.workspace_service import get_membership
 from app.sockets import events
 from app.sockets.rooms import room_name
 from app.sockets.state import allow_typing, connected_users
-from app.serializers import message_to_dict
-from app.services import message_service
 
 
 def _parse_ids(data):
     try:
         return uuid.UUID(str(data["workspace_id"])), uuid.UUID(str(data["channel_id"]))
     except (KeyError, TypeError, ValueError):
-        raise BadRequest("workspace_id and channel_id are required")
+        raise BadRequest("workspace_id and channel_id are required") from None
 
 
 def _parse_after(data):

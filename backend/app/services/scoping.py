@@ -1,6 +1,8 @@
 from sqlalchemy import select
+
 from app.errors import NotFound
 from app.extensions import db
+
 
 def scoped_select(model, workspace_id):
     if not hasattr(model, 'workspace_id'):

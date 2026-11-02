@@ -1,6 +1,7 @@
 from cryptography.fernet import Fernet
 from flask import current_app
 
+
 def _fernet():
     return Fernet(current_app.config['TOKEN_ENCRYPTION_KEY'])
 

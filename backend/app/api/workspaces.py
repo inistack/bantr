@@ -1,5 +1,7 @@
 import re
-from flask import g, Blueprint, jsonify, request
+
+from flask import Blueprint, g, jsonify, request
+
 from app.auth.decorators import login_required, require_role
 from app.errors import BadRequest
 from app.models import Role
@@ -58,7 +60,7 @@ def add_member(workspace_id):
     try:
         role = Role(data.get("role", "member"))
     except ValueError:
-        raise BadRequest("role must be one of: owner, admin, member")
+        raise BadRequest("role must be one of: owner, admin, member") from None
     if not email:
         raise BadRequest("email is required")
     user = svc.add_member(workspace_id, g.membership, email, role)
