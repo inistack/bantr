@@ -5,3 +5,5 @@ __pycache__/
 .pytest_cache/
 .vscode/
 .coverage
+coverage.xml
+.ruff_cache/
