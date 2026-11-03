@@ -1,6 +1,7 @@
 from app.extensions import socketio
 from tests.helpers import create_channel, create_ws
 
+
 def connect(app, user):
     token = user.headers["Authorization"].split(" ", 1)[1]
     sio_client = socketio.test_client(app, auth={"token": token})
