@@ -17,6 +17,7 @@ BACKEND_DIR = Path(__file__).resolve().parents[2]
 
 # ---- helpers -------------------------------------------------------------------------
 
+
 def free_port():
     with socket.socket() as s:
         s.bind(("127.0.0.1", 0))
@@ -31,7 +32,10 @@ class Server:
         self._log = open(logfile, "w")
         self.proc = subprocess.Popen(
             [sys.executable, "wsgi.py"],
-            cwd=BACKEND_DIR, env=env, stdout=self._log, stderr=subprocess.STDOUT,
+            cwd=BACKEND_DIR,
+            env=env,
+            stdout=self._log,
+            stderr=subprocess.STDOUT,
         )
 
     def log_tail(self, lines=25):
@@ -84,8 +88,7 @@ def server_pair(redis_url, tmp_path, **extra_env):
         if port not in ports:
             ports.append(port)
     servers = [
-        Server(port, {**base, "PORT": str(port)}, tmp_path / f"server-{port}.log")
-        for port in ports
+        Server(port, {**base, "PORT": str(port)}, tmp_path / f"server-{port}.log") for port in ports
     ]
     try:
         for server in servers:
@@ -105,7 +108,9 @@ class Listener:
         for name in ("message.sent", "user.joined", "user.typing", "presence.update"):
             self.sio.on(name, lambda data, name=name: self.events.append((name, data)))
         token = user.headers["Authorization"].split(" ", 1)[1]
-        self.sio.connect(server.url, auth={"token": token}, transports=["websocket"], wait_timeout=10)
+        self.sio.connect(
+            server.url, auth={"token": token}, transports=["websocket"], wait_timeout=10
+        )
 
     def received(self, name):
         return [data for event, data in self.events if event == name]
@@ -137,12 +142,16 @@ def wait_for(predicate, timeout=10.0):
 def send_via(server, user, ws, ch, body):
     return requests.post(
         f"{server.url}/workspaces/{ws}/channels/{ch}/messages",
-        json={"body": body}, headers=user.headers, timeout=10,
+        json={"body": body},
+        headers=user.headers,
+        timeout=10,
     )
 
 
 def read_via(server, user, ws, ch):
-    r = requests.get(f"{server.url}/workspaces/{ws}/channels/{ch}/messages", headers=user.headers, timeout=10)
+    r = requests.get(
+        f"{server.url}/workspaces/{ws}/channels/{ch}/messages", headers=user.headers, timeout=10
+    )
     assert r.status_code == 200
     return r.json()
 
@@ -155,7 +164,9 @@ def metric(server, prefix):
 
 
 def is_presence(user, ws, online):
-    return lambda e: e["user_id"] == str(user.id) and e["workspace_id"] == ws and e["online"] is online
+    return lambda e: (
+        e["user_id"] == str(user.id) and e["workspace_id"] == ws and e["online"] is online
+    )
 
 
 def setup(client, make_user):
@@ -167,6 +178,7 @@ def setup(client, make_user):
 
 
 # ---- tests ---------------------------------------------------------------------------
+
 
 def test_a_message_sent_to_one_server_reaches_a_client_on_the_other(
     client, make_user, real_redis, real_redis_url, tmp_path
@@ -201,17 +213,23 @@ def test_joins_and_typing_cross_servers(client, make_user, real_redis, real_redi
             on_a.close()
 
 
-def test_presence_is_shared_between_servers(client, make_user, real_redis, real_redis_url, tmp_path):
+def test_presence_is_shared_between_servers(
+    client, make_user, real_redis, real_redis_url, tmp_path
+):
     owner, bob, ws, ch = setup(client, make_user)
     with server_pair(real_redis_url, tmp_path) as (a, b):
         on_b = Listener(b, owner)
         on_a = Listener(a, bob)
         try:
-            assert wait_for(lambda: any(map(is_presence(bob, ws, True), on_b.received("presence.update"))))
+            assert wait_for(
+                lambda: any(map(is_presence(bob, ws, True), on_b.received("presence.update")))
+            )
             ack = on_b.presence_list(ws)
             assert ack["ok"] and set(ack["online"]) == {str(owner.id), str(bob.id)}
             on_a.close()
-            assert wait_for(lambda: any(map(is_presence(bob, ws, False), on_b.received("presence.update"))))
+            assert wait_for(
+                lambda: any(map(is_presence(bob, ws, False), on_b.received("presence.update")))
+            )
             assert on_b.presence_list(ws)["online"] == [str(owner.id)]
         finally:
             on_b.close()
@@ -226,7 +244,9 @@ def test_a_crashed_server_is_noticed_and_its_users_are_announced_offline(
         on_b = Listener(b, owner)
         on_a = Listener(a, bob, reconnect=False)
         try:
-            assert wait_for(lambda: any(map(is_presence(bob, ws, True), on_b.received("presence.update"))))
+            assert wait_for(
+                lambda: any(map(is_presence(bob, ws, True), on_b.received("presence.update")))
+            )
             a.kill()  # no disconnect handler runs: only the heartbeat expiry can notice
             assert wait_for(
                 lambda: any(map(is_presence(bob, ws, False), on_b.received("presence.update"))),
@@ -238,10 +258,15 @@ def test_a_crashed_server_is_noticed_and_its_users_are_announced_offline(
             on_a.close()
 
 
-def test_the_rate_limit_is_shared_between_servers(client, make_user, real_redis, real_redis_url, tmp_path):
+def test_the_rate_limit_is_shared_between_servers(
+    client, make_user, real_redis, real_redis_url, tmp_path
+):
     owner, bob, ws, ch = setup(client, make_user)
     with server_pair(real_redis_url, tmp_path, E2E_MESSAGE_RATE_LIMIT="3 per minute") as (a, b):
-        statuses = [send_via(server, owner, ws, ch, f"m{i}").status_code for i, server in enumerate([a, b, a, b])]
+        statuses = [
+            send_via(server, owner, ws, ch, f"m{i}").status_code
+            for i, server in enumerate([a, b, a, b])
+        ]
         assert statuses == [201, 201, 201, 429]  # neither server alone saw more than two
 
 
@@ -252,9 +277,13 @@ def test_the_message_cache_is_shared_and_kept_current_across_servers(
     hit = 'bantr_message_cache_requests_total{result="hit"}'
     miss = 'bantr_message_cache_requests_total{result="miss"}'
     with server_pair(real_redis_url, tmp_path) as (a, b):
-        assert send_via(a, owner, ws, ch, "m0").status_code == 201   # no cache yet: nothing to update
-        assert [m["body"] for m in read_via(b, owner, ws, ch)] == ["m0"]   # miss: B fills the cache
-        assert send_via(a, owner, ws, ch, "m1").status_code == 201   # A updates B's cache through Redis
+        assert (
+            send_via(a, owner, ws, ch, "m0").status_code == 201
+        )  # no cache yet: nothing to update
+        assert [m["body"] for m in read_via(b, owner, ws, ch)] == ["m0"]  # miss: B fills the cache
+        assert (
+            send_via(a, owner, ws, ch, "m1").status_code == 201
+        )  # A updates B's cache through Redis
         assert real_redis.zcard(f"msgs:ws:{ws}:ch:{ch}") == 2
-        assert [m["body"] for m in read_via(b, owner, ws, ch)] == ["m0", "m1"]   # hit
+        assert [m["body"] for m in read_via(b, owner, ws, ch)] == ["m0", "m1"]  # hit
         assert (metric(b, hit), metric(b, miss)) == (1.0, 1.0)

@@ -3,6 +3,7 @@
 Needs OWNER, BOB and ALPHA in the environment (source scripts/dev_env.sh),
 a server on port 5000 and another on port 5001.
 """
+
 import os
 import sys
 import time
@@ -32,8 +33,10 @@ def connect(url, token):
 
 def about(events, user_id, online=None):
     return [
-        (ts, d) for ts, d in events
-        if d["workspace_id"] == WS and d["user_id"] == user_id
+        (ts, d)
+        for ts, d in events
+        if d["workspace_id"] == WS
+        and d["user_id"] == user_id
         and (online is None or d["online"] == online)
     ]
 

@@ -42,10 +42,9 @@ def append(r, workspace_id, channel_id, message) -> bool:
         return False
     seq = message["seq"]
     pipe = r.pipeline()
-    pipe.zremrangebyscore(key, seq, seq)  
+    pipe.zremrangebyscore(key, seq, seq)
     pipe.zadd(key, {json.dumps(message, sort_keys=True, separators=(",", ":")): seq})
-    pipe.zremrangebyrank(key, 0, -(CACHE_SIZE + 1))  
+    pipe.zremrangebyrank(key, 0, -(CACHE_SIZE + 1))
     pipe.expire(key, CACHE_TTL_SECONDS)
     pipe.execute()
     return True
-

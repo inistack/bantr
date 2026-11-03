@@ -1,13 +1,13 @@
 def _key(workspace_id):
-    return f'presence:ws:{workspace_id}'
+    return f"presence:ws:{workspace_id}"
 
 
 def _member(user_id, sid):
-    return f'{user_id}|{sid}'
+    return f"{user_id}|{sid}"
 
 
 def _user_of(member):
-    return member.split('|', 1)[0]
+    return member.split("|", 1)[0]
 
 
 def _live_members(r, workspace_id, now, ttl):
@@ -15,7 +15,7 @@ def _live_members(r, workspace_id, now, ttl):
 
 
 def user_is_live(r, workspace_id, user_id, now, ttl):
-    prefix = f'{user_id}|'
+    prefix = f"{user_id}|"
     return any(m.startswith(prefix) for m in _live_members(r, workspace_id, now, ttl))
 
 
@@ -82,4 +82,3 @@ def reap_stale(r, workspace_id, now, ttl):
 def _key_ttl(ttl):
     """How long the whole key survives without a write: twice the connection TTL."""
     return ttl * 2
-

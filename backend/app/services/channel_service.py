@@ -13,7 +13,7 @@ def create_channel(workspace_id, user, name):
         db.session.commit()
     except IntegrityError:
         db.session.rollback()
-        raise Conflict('A channel with that name already exists') from None
+        raise Conflict("A channel with that name already exists") from None
     return channel
 
 
@@ -29,4 +29,3 @@ def get_channel(workspace_id, channel_id):
 def delete_channel(channel):
     db.session.delete(channel)
     db.session.commit()
-

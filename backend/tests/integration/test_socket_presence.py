@@ -64,7 +64,7 @@ def test_presence_updates_stay_inside_their_workspace(app, client, make_user):
     create_ws(client, bob, "beta")
     s_bob = socket_connect(app, bob)
     s_bob.get_received()
-    socket_connect(app, alice)  
+    socket_connect(app, alice)
     assert updates(s_bob) == []
 
 

@@ -11,26 +11,24 @@ def connect():
     print("connected, sid =", sio.sid)
 
 
-@sio.on('connected')
+@sio.on("connected")
 def on_connected(data):
-    print('server says:', data)
+    print("server says:", data)
 
 
 @sio.event
 def disconnect():
-    print('disconnected')
+    print("disconnected")
 
 
 try:
     sio.connect(
-        'http://localhost:5000',
-        auth={'token': token} if token else None,
-        transports=['websocket']
+        "http://localhost:5000", auth={"token": token} if token else None, transports=["websocket"]
     )
 except socketio.exceptions.ConnectionError as exc:
-    print('Connection refused:', exc)
+    print("Connection refused:", exc)
     sys.exit(1)
 
-print('whoami ->', sio.call('whoami', timeout=10))
+print("whoami ->", sio.call("whoami", timeout=10))
 sio.sleep(1)
 sio.disconnect()

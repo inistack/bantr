@@ -21,7 +21,7 @@ def _extract_token(auth) -> str | None:
         return auth["token"]
     header = request.headers.get("Authorization", "")
     if header.startswith("Bearer "):
-        return header[len("Bearer "):]
+        return header[len("Bearer ") :]
     return request.cookies.get(COOKIE_NAME)
 
 

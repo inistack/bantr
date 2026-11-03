@@ -20,4 +20,3 @@ class NotFound(AppError):
 
 class Conflict(AppError):
     status_code = 409
-

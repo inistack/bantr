@@ -10,8 +10,7 @@ from app.models.user import OAuthAccount, User
 def login_with_oauth(*, provider, provider_user_id, email, name, avatar_url, token):
     account = db.session.scalar(
         select(OAuthAccount).where(
-            OAuthAccount.provider == provider,
-            OAuthAccount.provider_user_id == provider_user_id
+            OAuthAccount.provider == provider, OAuthAccount.provider_user_id == provider_user_id
         )
     )
 
@@ -20,18 +19,12 @@ def login_with_oauth(*, provider, provider_user_id, email, name, avatar_url, tok
         if user is None:
             user = User(email=email, name=name, avatar_url=avatar_url)
             db.session.add(user)
-        account = OAuthAccount(
-            user=user,
-            provider=provider,
-            provider_user_id=provider_user_id
-        )
+        account = OAuthAccount(user=user, provider=provider, provider_user_id=provider_user_id)
         db.session.add(account)
 
-    expires_at = token.get('expires_at')
+    expires_at = token.get("expires_at")
     account.access_token = encrypt(token.get("access_token"))
     account.refresh_token = encrypt(token.get("refresh_token"))
-    account.expires_at = (
-            datetime.fromtimestamp(expires_at, tz=UTC) if expires_at else None
-    )
+    account.expires_at = datetime.fromtimestamp(expires_at, tz=UTC) if expires_at else None
     db.session.commit()
     return account.user

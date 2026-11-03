@@ -5,6 +5,7 @@ from flask import current_app
 
 ALGORITHM = "HS256"
 
+
 def issue_token(user_id):
     now = datetime.now(UTC)
     payload = {

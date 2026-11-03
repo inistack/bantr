@@ -1,7 +1,6 @@
 from app.extensions import socketio
 from tests.helpers import create_channel, create_ws
 
-
 def connect(app, user):
     token = user.headers["Authorization"].split(" ", 1)[1]
     sio_client = socketio.test_client(app, auth={"token": token})
@@ -10,9 +9,7 @@ def connect(app, user):
 
 
 def join(sio_client, ws, ch):
-    return sio_client.emit(
-        "channel.join", {"workspace_id": ws, "channel_id": ch}, callback=True
-    )
+    return sio_client.emit("channel.join", {"workspace_id": ws, "channel_id": ch}, callback=True)
 
 
 def test_member_can_join_channel_room(app, client, make_user):
@@ -31,9 +28,7 @@ def test_non_member_cannot_join_channel_room(app, client, make_user):
     assert ack == {"ok": False, "error": "Channel not found"}
 
 
-def test_member_of_another_workspace_cannot_join_via_their_own_workspace_id(
-    app, client, make_user
-):
+def test_member_of_another_workspace_cannot_join_via_their_own_workspace_id(app, client, make_user):
     alice, bob = make_user("alice@test.dev"), make_user("bob@test.dev")
     alpha = create_ws(client, alice, "alpha")
     beta = create_ws(client, bob, "beta")
@@ -48,3 +43,10 @@ def test_join_with_malformed_payload_is_refused(app, make_user):
         "channel.join", {"workspace_id": "nope"}, callback=True
     )
     assert ack["ok"] is False
+
+
+def test_all_socket_event_handlers_are_registered():
+    registered = set(socketio.server.handlers["/"])
+    expected = {"connect", "disconnect", "whoami", "channel.join", "channel.leave",
+                "user.typing", "presence.list"}
+    assert expected <= registered, f"missing handlers: {expected - registered}"

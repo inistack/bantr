@@ -15,25 +15,32 @@ def create_app(config_name=None):
     app = Flask(__name__)
     app.config.from_object(config_by_name[config_name])
     from app.logging_config import configure_logging
+
     configure_logging(app.config["LOG_FORMAT"], app.config["LOG_LEVEL"])
 
     from app.request_logging import init_request_logging
+
     init_request_logging(app)
-
-
 
     db.init_app(app)
     migrate.init_app(app, db)
     from app.auth.oauth import init_oauth
+
     init_oauth(app)
     from app.redis_client import init_redis
+
     init_redis(app)
 
     socketio.init_app(
-        app, async_mode='threading', cors_allowed_origins=app.config.get("SOCKETIO_CORS_ORIGINS"), 
-        message_queue=app.config["REDIS_URL"], channel=app.config["SOCKETIO_CHANNEL"], logger=False
+        app,
+        async_mode="threading",
+        cors_allowed_origins=app.config.get("SOCKETIO_CORS_ORIGINS"),
+        message_queue=app.config["REDIS_URL"],
+        channel=app.config["SOCKETIO_CHANNEL"],
+        logger=False,
     )
     from app.rate_limit import limiter
+
     limiter.init_app(app)
 
     from app.api.auth import auth_bp
@@ -42,18 +49,25 @@ def create_app(config_name=None):
     from app.api.messages import message_bp
     from app.api.metrics import bp as metrics_bp
     from app.api.workspaces import workspace_bp
+    from app.sockets import channels as socket_channels
+    from app.sockets import connection
 
     @app.errorhandler(AppError)
     def handle_app_error(err):
         return jsonify(error=err.message), err.status_code
-    
+
     @app.errorhandler(429)
     def handle_rate_limit(err):
         structlog.get_logger("rate_limit").warning(
-            "rate_limit.exceeded", key=rate_limit_key(), limit=str(err.description), path=request.path
+            "rate_limit.exceeded",
+            key=rate_limit_key(),
+            limit=str(err.description),
+            path=request.path,
         )
-        return jsonify(error="Too many requests. Slow down and retry shortly.", limit=str(err.description)), 429
-    
+        return jsonify(
+            error="Too many requests. Slow down and retry shortly.", limit=str(err.description)
+        ), 429
+
     app.register_blueprint(health_bp)
     app.register_blueprint(auth_bp)
     app.register_blueprint(workspace_bp)
@@ -61,6 +75,4 @@ def create_app(config_name=None):
     app.register_blueprint(message_bp)
     app.register_blueprint(metrics_bp)
 
-
     return app
-

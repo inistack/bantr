@@ -17,9 +17,9 @@ from app.services.scoping import scoped_select
 log = structlog.get_logger(__name__)
 
 
-
 MAX_BODY = 4000
 MAX_LIMIT = 100
+
 
 def send_message(workspace_id, channel_id, user, body):
     seq = db.session.scalar(
@@ -30,14 +30,10 @@ def send_message(workspace_id, channel_id, user, body):
     )
     if seq is None:
         db.session.rollback()
-        raise NotFound('Channel not found')
-    
+        raise NotFound("Channel not found")
+
     message = Message(
-        workspace_id=workspace_id,
-        channel_id=channel_id,
-        user_id = user.id,
-        body=body,
-        seq=seq
+        workspace_id=workspace_id, channel_id=channel_id, user_id=user.id, body=body, seq=seq
     )
     db.session.add(message)
     db.session.commit()
@@ -46,7 +42,7 @@ def send_message(workspace_id, channel_id, user, body):
 
 def list_messages(workspace_id, channel_id, *, after=None, before=None, limit=50):
     if after is not None and before is not None:
-        raise BadRequest('Use either after or before, not both')
+        raise BadRequest("Use either after or before, not both")
     limit = max(1, min(limit, MAX_LIMIT))
 
     get_channel(workspace_id, channel_id)
@@ -61,12 +57,10 @@ def list_messages(workspace_id, channel_id, *, after=None, before=None, limit=50
         return db.session.scalars(
             query.where(Message.seq > after).order_by(Message.seq.asc()).limit(limit)
         ).all()
-    
+
     if before is not None:
         query = query.where(Message.seq < before)
-    rows = db.session.scalars(
-            query.order_by(Message.seq.desc()).limit(limit)
-        ).all()
+    rows = db.session.scalars(query.order_by(Message.seq.desc()).limit(limit)).all()
     return list(reversed(rows))
 
 
@@ -87,7 +81,7 @@ def _read_cache(r, workspace_id, channel):
 
 def _fill_cache(r, workspace_id, channel, messages):
     try:
-        message_cache.fill(r, workspace_id, channel.id, messages[-message_cache.CACHE_SIZE:])
+        message_cache.fill(r, workspace_id, channel.id, messages[-message_cache.CACHE_SIZE :])
     except redis.RedisError:
         log.exception("message_cache.fill_failed")
         metrics.cache_result("error")
@@ -98,7 +92,7 @@ def recent_messages(workspace_id, channel_id, limit=50):
 
     Served from the Redis cache when it is complete and current, else from Postgres."""
     limit = max(1, min(limit, MAX_LIMIT))
-    channel = get_channel(workspace_id, channel_id) 
+    channel = get_channel(workspace_id, channel_id)
     if channel.last_seq == 0:
         return []
 

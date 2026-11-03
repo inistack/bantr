@@ -20,6 +20,7 @@ _start_lock = threading.Lock()
 
 log = structlog.get_logger(__name__)
 
+
 def _ttl() -> int:
     return current_app.config["PRESENCE_TTL_SECONDS"]
 
@@ -52,9 +53,7 @@ def on_connect(sid, user_id):
         return
     _ensure_heartbeat_running(current_app._get_current_object())
     try:
-        for ws in presence_service.add_connection(
-            r, ids, str(user_id), sid, time.time(), _ttl()
-        ):
+        for ws in presence_service.add_connection(r, ids, str(user_id), sid, time.time(), _ttl()):
             announce(ws, user_id, True, "connect", skip_sid=sid)
     except redis.RedisError:
         # Never refuse a connection because presence is down; the heartbeat
@@ -91,9 +90,7 @@ def on_presence_list(data=None):
     if r is None:
         return {"ok": False, "error": "Presence unavailable"}
     try:
-        online = presence_service.online_user_ids(
-            r, str(workspace_id), time.time(), _ttl()
-        )
+        online = presence_service.online_user_ids(r, str(workspace_id), time.time(), _ttl())
     except redis.RedisError:
         return {"ok": False, "error": "Presence unavailable"}
     return {"ok": True, "online": online}
@@ -105,9 +102,7 @@ def run_heartbeat_once():
     if r is None:
         return
     now, ttl = time.time(), _ttl()
-    snapshot = list(
-        connection_workspaces.items()
-    )  # copy: handlers mutate it concurrently
+    snapshot = list(connection_workspaces.items())  # copy: handlers mutate it concurrently
 
     entries = []
     for sid, ids in snapshot:

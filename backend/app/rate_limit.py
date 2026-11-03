@@ -16,5 +16,5 @@ def rate_limit_key():
             pass
     return f"ip:{get_remote_address()}"
 
-limiter = Limiter(key_func=rate_limit_key)
 
+limiter = Limiter(key_func=rate_limit_key)

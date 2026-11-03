@@ -2,6 +2,7 @@
 
 Usage: python -m scripts.resume_client TOKEN WORKSPACE_ID CHANNEL_ID
 """
+
 import os
 import sys
 import threading

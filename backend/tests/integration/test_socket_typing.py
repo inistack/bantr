@@ -2,9 +2,7 @@ from tests.helpers import add_member, create_channel, create_ws, socket_connect,
 
 
 def typing(sio_client, ws, ch):
-    return sio_client.emit(
-        "user.typing", {"workspace_id": ws, "channel_id": ch}, callback=True
-    )
+    return sio_client.emit("user.typing", {"workspace_id": ws, "channel_id": ch}, callback=True)
 
 
 def typing_events(sio_client):

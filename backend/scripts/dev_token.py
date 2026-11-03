@@ -1,4 +1,5 @@
 """DEV ONLY: print a JWT for an email, creating the user if needed."""
+
 import sys
 
 from sqlalchemy import select

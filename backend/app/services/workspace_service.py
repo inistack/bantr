@@ -14,7 +14,7 @@ def create_workspace(user, name, slug):
         db.session.commit()
     except IntegrityError:
         db.session.rollback()
-        raise Conflict('That workspace URL name is already taken') from None
+        raise Conflict("That workspace URL name is already taken") from None
     return workspace
 
 
@@ -40,21 +40,23 @@ def list_members(workspace_id):
 
 def add_member(workspace_id, actor_membership, email, role):
     if ROLE_RANK[role] >= ROLE_RANK[actor_membership.role]:
-        raise Forbidden('You can only grant roles below your own')
+        raise Forbidden("You can only grant roles below your own")
     user = db.session.scalar(select(User).where(User.email == email))
     if user is None:
-        raise NotFound('No user with that email')
+        raise NotFound("No user with that email")
     db.session.add(Membership(user_id=user.id, workspace_id=workspace_id, role=role))
     try:
         db.session.commit()
     except IntegrityError:
         db.session.rollback()
-        raise Conflict('User is already a member') from None
+        raise Conflict("User is already a member") from None
     return user
+
 
 def delete_workspace(workspace):
     db.session.delete(workspace)
     db.session.commit()
+
 
 def get_membership(user_id, workspace_id):
     return db.session.scalar(
@@ -69,4 +71,3 @@ def workspace_ids_for_user(user_id):
     return db.session.scalars(
         select(Membership.workspace_id).where(Membership.user_id == user_id)
     ).all()
-

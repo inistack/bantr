@@ -75,9 +75,11 @@ def test_concurrent_sends_get_distinct_gapfree_seqs(app, client, make_user):
 
     def fire(i):
         # Each thread gets its own client, like separate users on separate connections.
-        return app.test_client().post(
-            path, json={"body": f"burst {i}"}, headers=owner.headers
-        ).status_code
+        return (
+            app.test_client()
+            .post(path, json={"body": f"burst {i}"}, headers=owner.headers)
+            .status_code
+        )
 
     with ThreadPoolExecutor(max_workers=10) as pool:
         statuses = list(pool.map(fire, range(30)))

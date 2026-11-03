@@ -2,6 +2,7 @@
 
 Usage: python -m scripts.socket_presence TOKEN WORKSPACE_ID
 """
+
 import os
 import sys
 

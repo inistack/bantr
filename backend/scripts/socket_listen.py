@@ -2,6 +2,7 @@
 
 Usage: python -m scripts.socket_listen TOKEN WORKSPACE_ID CHANNEL_ID
 """
+
 import os
 import sys
 
@@ -22,7 +23,10 @@ sio.connect(
     transports=["websocket"],
     wait_timeout=10,
 )
-print("join ->", sio.call("channel.join", {"workspace_id": workspace_id, "channel_id": channel_id}, timeout=5))
+print(
+    "join ->",
+    sio.call("channel.join", {"workspace_id": workspace_id, "channel_id": channel_id}, timeout=5),
+)
 print("listening... (Ctrl+C to stop)")
 try:
     sio.wait()

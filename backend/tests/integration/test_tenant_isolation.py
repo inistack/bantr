@@ -26,9 +26,7 @@ def tenants(client, make_user):
     send(client, bob, b, ch_b, SECRET_B)
     add_member(client, alice, a, "multi@test.dev", "admin")
     add_member(client, bob, b, "multi@test.dev", "admin")
-    return SimpleNamespace(
-        alice=alice, bob=bob, multi=multi, a=a, b=b, ch_a=ch_a, ch_b=ch_b
-    )
+    return SimpleNamespace(alice=alice, bob=bob, multi=multi, a=a, b=b, ch_a=ch_a, ch_b=ch_b)
 
 
 ENDPOINTS = [
@@ -55,21 +53,21 @@ def test_outsider_gets_404_on_every_endpoint_and_changes_nothing(
     assert r.status_code == 404
 
     with app.app_context():
+
         def count(model):
             return db.session.scalar(select(func.count()).select_from(model))
+
         assert count(Workspace) == 2
         assert count(Channel) == 2
         assert count(Message) == 2
-        assert count(Membership) == 4  
+        assert count(Membership) == 4
 
 
-def test_an_id_from_another_workspace_is_404_even_for_a_member_of_both(
-    app, client, tenants
-):
+def test_an_id_from_another_workspace_is_404_even_for_a_member_of_both(app, client, tenants):
     """multi is an admin in both workspaces and has the right role in each.
     The workspace in the URL is authorized, but the object belongs elsewhere."""
     h = tenants.multi.headers
-    wrong = f"/workspaces/{tenants.b}/channels/{tenants.ch_a}"  
+    wrong = f"/workspaces/{tenants.b}/channels/{tenants.ch_a}"
 
     assert client.get(wrong, headers=h).status_code == 404
     assert client.get(f"{wrong}/messages", headers=h).status_code == 404
@@ -84,8 +82,12 @@ def test_an_id_from_another_workspace_is_404_even_for_a_member_of_both(
 
 def test_each_workspace_lists_only_its_own_channels(client, tenants):
     h = tenants.multi.headers
-    names_a = [c["name"] for c in client.get(f"/workspaces/{tenants.a}/channels", headers=h).get_json()]
-    names_b = [c["name"] for c in client.get(f"/workspaces/{tenants.b}/channels", headers=h).get_json()]
+    names_a = [
+        c["name"] for c in client.get(f"/workspaces/{tenants.a}/channels", headers=h).get_json()
+    ]
+    names_b = [
+        c["name"] for c in client.get(f"/workspaces/{tenants.b}/channels", headers=h).get_json()
+    ]
     assert names_a == ["alpha-general"]
     assert names_b == ["beta-general"]
 
@@ -123,8 +125,8 @@ def test_database_rejects_a_message_whose_workspace_does_not_match_its_channel(a
     with app.app_context():
         db.session.add(
             Message(
-                workspace_id=uuid.UUID(tenants.b),     
-                channel_id=uuid.UUID(tenants.ch_a),     
+                workspace_id=uuid.UUID(tenants.b),
+                channel_id=uuid.UUID(tenants.ch_a),
                 user_id=tenants.bob.id,
                 body="cross-tenant write",
                 seq=99,

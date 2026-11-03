@@ -8,6 +8,7 @@ class BrokenRedis:
     def __getattr__(self, name):
         def fail(*args, **kwargs):
             raise redis.ConnectionError("redis is down")
+
         return fail
 
 
@@ -28,9 +29,11 @@ def history(client, user, ws, ch, query=""):
 
 def stats():
     def count(result):
-        return REGISTRY.get_sample_value(
-            "bantr_message_cache_requests_total", {"result": result}
-        ) or 0.0
+        return (
+            REGISTRY.get_sample_value("bantr_message_cache_requests_total", {"result": result})
+            or 0.0
+        )
+
     return count("hit"), count("miss")
 
 
@@ -66,7 +69,9 @@ def test_a_small_limit_is_served_from_the_cached_window(client, make_user):
     assert [m["body"] for m in got] == ["m3", "m4"]
 
 
-def test_a_limit_above_the_cache_size_is_correct_and_does_not_truncate_later_reads(client, make_user):
+def test_a_limit_above_the_cache_size_is_correct_and_does_not_truncate_later_reads(
+    client, make_user
+):
     owner, ws, ch = setup(client, make_user)
     for i in range(60):
         send(client, owner, ws, ch, f"m{i}")
@@ -119,8 +124,8 @@ def test_cached_and_rebuilt_results_are_identical(app, client, make_user):
     owner, ws, ch = setup(client, make_user)
     for i in range(3):
         send(client, owner, ws, ch, f"m{i}")
-    history(client, owner, ws, ch)           # warm
-    send(client, owner, ws, ch, "m3")        # write-through
+    history(client, owner, ws, ch)  # warm
+    send(client, owner, ws, ch, "m3")  # write-through
     from_cache = history(client, owner, ws, ch).get_json()
     app.extensions["redis"].delete(cache_key(ws, ch))
     rebuilt = history(client, owner, ws, ch).get_json()
@@ -149,8 +154,8 @@ def test_a_server_that_skips_the_cache_cannot_make_it_serve_stale_data(
 ):
     owner, ws, ch = setup(client, make_user)
     send(client, owner, ws, ch, "m0")
-    history(client, owner, ws, ch)  
+    history(client, owner, ws, ch)
     with monkeypatch.context() as patch:
         patch.setitem(app.config, "MESSAGE_CACHE_ENABLED", False)
-        send(client, owner, ws, ch, "m1")  
+        send(client, owner, ws, ch, "m1")
     assert [m["body"] for m in history(client, owner, ws, ch).get_json()] == ["m0", "m1"]

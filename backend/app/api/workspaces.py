@@ -11,8 +11,10 @@ workspace_bp = Blueprint("workspaces", __name__, url_prefix="/workspaces")
 
 SLUG_RE = re.compile(r"^[a-z0-9][a-z0-9-]{1,58}[a-z0-9]$")
 
+
 def _ws_json(ws, role):
     return {"id": str(ws.id), "name": ws.name, "slug": ws.slug, "role": role.value}
+
 
 @workspace_bp.post("")
 @login_required

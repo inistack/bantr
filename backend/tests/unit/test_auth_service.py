@@ -28,7 +28,7 @@ def test_new_identity_creates_user_and_encrypted_account(app):
         login()
         account = db.session.scalar(select(OAuthAccount))
         assert count(User) == 1
-        assert account.access_token != "tok-123"      
+        assert account.access_token != "tok-123"
         assert decrypt(account.access_token) == "tok-123"
         assert decrypt(account.refresh_token) == "ref-456"
 

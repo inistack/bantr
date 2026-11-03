@@ -10,7 +10,7 @@ from app import metrics
 log = structlog.get_logger("http")
 
 _SAFE_ID = re.compile(r"^[A-Za-z0-9._-]{1,64}$")
-_QUIET_PATHS = {"/health", "/metrics"} 
+_QUIET_PATHS = {"/health", "/metrics"}
 
 
 def init_request_logging(app):

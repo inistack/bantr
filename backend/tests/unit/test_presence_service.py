@@ -49,9 +49,9 @@ def test_heartbeat_keeps_a_connection_alive(r):
 
 
 def test_reaper_removes_dead_connections_and_reports_each_user_once(r):
-    p.add_connection(r, ["w1"], "alice", "s1", 1000, TTL)  
+    p.add_connection(r, ["w1"], "alice", "s1", 1000, TTL)
     assert p.reap_stale(r, "w1", now=1100, ttl=TTL) == ["alice"]
-    assert p.reap_stale(r, "w1", now=1100, ttl=TTL) == []  
+    assert p.reap_stale(r, "w1", now=1100, ttl=TTL) == []
 
 
 def test_reaper_does_not_report_a_user_who_still_has_a_live_connection(r):
@@ -65,7 +65,7 @@ def test_heartbeat_reports_entries_that_had_been_reaped(r):
     p.add_connection(r, ["w1"], "alice", "s1", 1000, TTL)
     p.reap_stale(r, "w1", now=1100, ttl=TTL)
     assert p.heartbeat(r, [(["w1"], "alice", "s1")], now=1101, ttl=TTL) == [("w1", "alice")]
-    assert p.heartbeat(r, [(["w1"], "alice", "s1")], now=1102, ttl=TTL) == []  
+    assert p.heartbeat(r, [(["w1"], "alice", "s1")], now=1102, ttl=TTL) == []
 
 
 def test_presence_key_gets_an_expiry_when_written(r):
@@ -75,12 +75,13 @@ def test_presence_key_gets_an_expiry_when_written(r):
 
 def test_heartbeat_pushes_the_key_expiry_forward(r):
     p.add_connection(r, ["w1"], "alice", "s1", 1000, TTL)
-    r.expire("presence:ws:w1", 5)  
+    r.expire("presence:ws:w1", 5)
     p.heartbeat(r, [(["w1"], "alice", "s1")], now=1001, ttl=TTL)
     assert r.ttl("presence:ws:w1") > TTL
 
+
 def test_an_abandoned_workspace_key_disappears_on_its_own(r):
-    p.add_connection(r, ["w1"], "alice", "s1", time.time(), ttl=1)  
+    p.add_connection(r, ["w1"], "alice", "s1", time.time(), ttl=1)
     assert r.exists("presence:ws:w1") == 1
     time.sleep(2.5)
     assert r.exists("presence:ws:w1") == 0

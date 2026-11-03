@@ -5,6 +5,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+
 class Config:
     SECRET_KEY = os.environ.get("SECRET_KEY", "development-secret-key")
     SQLALCHEMY_DATABASE_URI = os.environ.get("DATABASE_URL")
@@ -34,6 +35,7 @@ class Config:
 class DevelopmentConfig(Config):
     DEBUG = True
 
+
 class TestingConfig(Config):
     TESTING = True
     SQLALCHEMY_DATABASE_URI = os.environ.get("TEST_DATABASE_URL")
@@ -47,6 +49,7 @@ class TestingConfig(Config):
     LOG_LEVEL = "WARNING"
     METRICS_TOKEN = None
 
+
 class E2EConfig(TestingConfig):
     """Used by the real server processes that tests/e2e starts."""
 
@@ -59,6 +62,7 @@ class E2EConfig(TestingConfig):
     SOCKETIO_CORS_ORIGINS = "*"  # random ports; test config only
     LOG_LEVEL = "WARNING"
 
+
 class ProductionConfig(Config):
     DEBUG = False
     COOKIE_SECURE = True
@@ -70,4 +74,3 @@ config_by_name = {
     "production": ProductionConfig,
     "e2e": E2EConfig,
 }
-

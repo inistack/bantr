@@ -5,6 +5,7 @@ Needs OWNER, ALPHA and CH in the environment (source scripts/dev_env.sh), a serv
 with the cache on (BANTR_URL_ON, default http://127.0.0.1:5000) and one started with
 MESSAGE_CACHE_ENABLED=0 (BANTR_URL_OFF, default http://127.0.0.1:5002).
 """
+
 import os
 import statistics
 import sys
@@ -58,5 +59,7 @@ for name, s in samples.items():
     s.sort()
     p50[name] = s[len(s) // 2]
     p95 = s[min(len(s) - 1, int(len(s) * 0.95))]
-    print(f"{name:10} {len(s):>5} {s[0]:7.1f} {p50[name]:7.1f} {p95:7.1f} {statistics.fmean(s):7.1f}")
+    print(
+        f"{name:10} {len(s):>5} {s[0]:7.1f} {p50[name]:7.1f} {p95:7.1f} {statistics.fmean(s):7.1f}"
+    )
 print(f"\np50 ratio (off / on): {p50['cache off'] / p50['cache on']:.2f}x")

@@ -4,13 +4,17 @@ from app.services import message_cache as c
 
 
 def msg(seq):
-    return {"id": f"id{seq}", "seq": seq, "body": f"m{seq}", "created_at": "t",
-            "user": {"id": "u", "name": "n", "avatar_url": None}}
+    return {
+        "id": f"id{seq}",
+        "seq": seq,
+        "body": f"m{seq}",
+        "created_at": "t",
+        "user": {"id": "u", "name": "n", "avatar_url": None},
+    }
 
 
 def window(first, last):
     return [msg(s) for s in range(first, last + 1)]
-
 
 
 def test_an_empty_channel_reads_as_an_empty_window(r):
@@ -38,7 +42,7 @@ def test_a_stale_cache_is_a_miss(r):
 
 
 def test_an_incomplete_cache_is_a_miss(r):
-    c.fill(r, "w", "c", window(10, 10)) 
+    c.fill(r, "w", "c", window(10, 10))
     assert c.read(r, "w", "c", last_seq=10) is None
 
 
@@ -52,7 +56,7 @@ def test_fill_replaces_previous_contents(r):
     c.fill(r, "w", "c", window(71, 120))
     got = c.read(r, "w", "c", last_seq=120)
     assert [m["seq"] for m in got] == list(range(71, 121))
-    assert r.zcard(c._key("w", "c")) == 50  
+    assert r.zcard(c._key("w", "c")) == 50
 
 
 def test_cache_is_separate_per_workspace_and_channel(r):

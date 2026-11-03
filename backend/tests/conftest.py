@@ -14,9 +14,10 @@ from app.sockets.state import connected_users, connection_workspaces
 
 REAL_REDIS_URL = os.environ.get("TEST_REDIS_URL", "redis://localhost:6379/15")
 
-@pytest.fixture(scope='session')
+
+@pytest.fixture(scope="session")
 def app():
-    app = create_app('testing')
+    app = create_app("testing")
     app.extensions["redis"] = fakeredis.FakeRedis(decode_responses=True)
     uri = app.config["SQLALCHEMY_DATABASE_URI"] or ""
     assert uri.rsplit("/", 1)[-1].endswith("_test"), f"Refusing to run tests on {uri!r}"
@@ -59,9 +60,7 @@ def make_user(app):
             db.session.commit()
             uid = user.id
             token = issue_token(uid)
-        return SimpleNamespace(
-            id=uid, email=email, headers={"Authorization": f"Bearer {token}"}
-        )
+        return SimpleNamespace(id=uid, email=email, headers={"Authorization": f"Bearer {token}"})
 
     return _make
 

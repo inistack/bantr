@@ -5,9 +5,7 @@ from app.models import Membership
 
 
 def create_ws(client, owner, slug="acme"):
-    r = client.post(
-        "/workspaces", json={"name": slug.title(), "slug": slug}, headers=owner.headers
-    )
+    r = client.post("/workspaces", json={"name": slug.title(), "slug": slug}, headers=owner.headers)
     assert r.status_code == 201
     return r.get_json()["id"]
 
@@ -84,9 +82,7 @@ def test_adding_same_member_twice_conflicts(client, make_user):
 def test_duplicate_slug_conflicts(client, make_user):
     owner = make_user("owner@test.dev")
     create_ws(client, owner, "acme")
-    r = client.post(
-        "/workspaces", json={"name": "Other", "slug": "acme"}, headers=owner.headers
-    )
+    r = client.post("/workspaces", json={"name": "Other", "slug": "acme"}, headers=owner.headers)
     assert r.status_code == 409
 
 
@@ -101,3 +97,15 @@ def test_only_owner_can_delete_and_memberships_cascade(app, client, make_user):
     with app.app_context():
         remaining = db.session.scalar(select(func.count()).select_from(Membership))
     assert remaining == 0
+
+
+def test_list_workspaces_returns_only_mine_with_roles(client, make_user):
+    alice, bob = make_user("alice@test.dev"), make_user("bob@test.dev")
+    alpha = create_ws(client, alice, "alpha")
+    create_ws(client, bob, "beta")
+    add_member(client, alice, alpha, "bob@test.dev")
+
+    r = client.get("/workspaces", headers=bob.headers)
+    assert {w["slug"]: w["role"] for w in r.get_json()} == {"alpha": "member", "beta": "owner"}
+    r = client.get("/workspaces", headers=alice.headers)
+    assert [w["slug"] for w in r.get_json()] == ["alpha"]

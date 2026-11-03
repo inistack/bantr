@@ -13,7 +13,11 @@ from app.sockets import events
 from app.sockets.rooms import room_name
 
 log = structlog.get_logger(__name__)
-message_bp = Blueprint('message', __name__, url_prefix='/workspaces/<uuid:workspace_id>/channels/<uuid:channel_id>/messages')
+message_bp = Blueprint(
+    "message",
+    __name__,
+    url_prefix="/workspaces/<uuid:workspace_id>/channels/<uuid:channel_id>/messages",
+)
 
 
 def _int_arg(name):
@@ -23,19 +27,19 @@ def _int_arg(name):
     try:
         return int(raw)
     except ValueError:
-        raise BadRequest(f'{name} must be an integer') from None
-    
+        raise BadRequest(f"{name} must be an integer") from None
 
-@message_bp.post('')
+
+@message_bp.post("")
 @limiter.limit(lambda: current_app.config["MESSAGE_RATE_LIMIT"], key_func=rate_limit_key)
 @require_role(Role.MEMBER)
 def send(workspace_id, channel_id):
     data = request.get_json(silent=True) or {}
-    body = (data.get('body') or '').strip()
+    body = (data.get("body") or "").strip()
     if not body:
-        raise BadRequest('body is required')
+        raise BadRequest("body is required")
     if len(body) > svc.MAX_BODY:
-        raise BadRequest(f'body must be at most {svc.MAX_BODY} characters')
+        raise BadRequest(f"body must be at most {svc.MAX_BODY} characters")
     message = svc.send_message(workspace_id, channel_id, g.current_user, body)
     payload = _json(message)
     log.info(
@@ -60,14 +64,12 @@ def send(workspace_id, channel_id):
     return jsonify(payload), 201
 
 
-@message_bp.get('')
+@message_bp.get("")
 @require_role(Role.MEMBER)
 def history(workspace_id, channel_id):
     limit = _int_arg("limit") or 50
     after, before = _int_arg("after"), _int_arg("before")
     if after is None and before is None:
         return jsonify(svc.recent_messages(workspace_id, channel_id, limit))
-    rows = svc.list_messages(
-        workspace_id, channel_id, after=after, before=before, limit=limit
-    )
+    rows = svc.list_messages(workspace_id, channel_id, after=after, before=before, limit=limit)
     return jsonify([_json(m) for m in rows])

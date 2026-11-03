@@ -9,7 +9,7 @@ def configure_logging(log_format: str = "console", level: str = "INFO"):
 
     Returns the handler we installed (tests swap its output stream)."""
     shared = [
-        structlog.contextvars.merge_contextvars,  
+        structlog.contextvars.merge_contextvars,
         structlog.stdlib.add_logger_name,
         structlog.stdlib.add_log_level,
         structlog.stdlib.ExtraAdder(),
@@ -34,16 +34,16 @@ def configure_logging(log_format: str = "console", level: str = "INFO"):
     handler = logging.StreamHandler(sys.stdout)
     handler.setFormatter(
         structlog.stdlib.ProcessorFormatter(
-            foreign_pre_chain=shared, 
+            foreign_pre_chain=shared,
             processors=[structlog.stdlib.ProcessorFormatter.remove_processors_meta, *renderers],
         )
     )
-    handler._bantr = True  
+    handler._bantr = True
 
     root = logging.getLogger()
     for old in [h for h in root.handlers if getattr(h, "_bantr", False)]:
         root.removeHandler(old)
     root.addHandler(handler)
     root.setLevel(level.upper())
-    logging.getLogger("werkzeug").setLevel(logging.WARNING)  
+    logging.getLogger("werkzeug").setLevel(logging.WARNING)
     return handler

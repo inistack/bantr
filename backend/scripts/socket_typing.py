@@ -2,6 +2,7 @@
 
 Usage: python -m scripts.socket_typing TOKEN WORKSPACE_ID CHANNEL_ID
 """
+
 import os
 import sys
 

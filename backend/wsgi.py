@@ -5,7 +5,7 @@ from app.extensions import socketio
 
 app = create_app()
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     debug = os.environ.get("APP_DEBUG", "1") == "1"
     socketio.run(
         app,
@@ -13,5 +13,5 @@ if __name__ == '__main__':
         port=int(os.environ.get("PORT", "5000")),
         debug=debug,
         use_reloader=debug,
-        allow_unsafe_werkzeug=True,  
+        allow_unsafe_werkzeug=True,
     )
