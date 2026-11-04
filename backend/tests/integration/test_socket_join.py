@@ -48,6 +48,13 @@ def test_join_with_malformed_payload_is_refused(app, make_user):
 
 def test_all_socket_event_handlers_are_registered():
     registered = set(socketio.server.handlers["/"])
-    expected = {"connect", "disconnect", "whoami", "channel.join", "channel.leave",
-                "user.typing", "presence.list"}
+    expected = {
+        "connect",
+        "disconnect",
+        "whoami",
+        "channel.join",
+        "channel.leave",
+        "user.typing",
+        "presence.list",
+    }
     assert expected <= registered, f"missing handlers: {expected - registered}"
