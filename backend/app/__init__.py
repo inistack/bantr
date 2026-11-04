@@ -49,8 +49,8 @@ def create_app(config_name=None):
     from app.api.messages import message_bp
     from app.api.metrics import bp as metrics_bp
     from app.api.workspaces import workspace_bp
-    from app.sockets import channels as socket_channels
-    from app.sockets import connection
+    from app.sockets import channels as socket_channels  # noqa: F401
+    from app.sockets import connection  # noqa: F401
 
     @app.errorhandler(AppError)
     def handle_app_error(err):
