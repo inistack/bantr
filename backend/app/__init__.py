@@ -14,6 +14,14 @@ def create_app(config_name=None):
 
     app = Flask(__name__)
     app.config.from_object(config_by_name[config_name])
+
+    if config_name == "production":
+        from app.config import missing_production_settings
+
+        problems = missing_production_settings(app.config)
+        if problems:
+            raise RuntimeError("Refusing to start in production. Fix: " + ", ".join(problems))
+        
     from app.logging_config import configure_logging
 
     configure_logging(app.config["LOG_FORMAT"], app.config["LOG_LEVEL"])
@@ -33,7 +41,7 @@ def create_app(config_name=None):
 
     socketio.init_app(
         app,
-        async_mode="threading",
+        async_mode=app.config["SOCKETIO_ASYNC_MODE"],
         cors_allowed_origins=app.config.get("SOCKETIO_CORS_ORIGINS"),
         message_queue=app.config["REDIS_URL"],
         channel=app.config["SOCKETIO_CHANNEL"],
@@ -74,5 +82,11 @@ def create_app(config_name=None):
     app.register_blueprint(channel_bp)
     app.register_blueprint(message_bp)
     app.register_blueprint(metrics_bp)
+
+    if app.config["PROXY_HOPS"]:
+        from werkzeug.middleware.proxy_fix import ProxyFix
+
+        hops = app.config["PROXY_HOPS"]
+        app.wsgi_app = ProxyFix(app.wsgi_app, x_for=hops, x_proto=hops, x_host=hops)
 
     return app

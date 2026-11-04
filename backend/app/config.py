@@ -5,9 +5,10 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+DEV_SECRET_KEY = "dev-only-change-me"
 
 class Config:
-    SECRET_KEY = os.environ.get("SECRET_KEY", "development-secret-key")
+    SECRET_KEY = os.environ.get("SECRET_KEY", DEV_SECRET_KEY)
     SQLALCHEMY_DATABASE_URI = os.environ.get("DATABASE_URL")
     GITHUB_CLIENT_ID = os.environ.get("GITHUB_CLIENT_ID")
     GITHUB_CLIENT_SECRET = os.environ.get("GITHUB_CLIENT_SECRET")
@@ -16,6 +17,13 @@ class Config:
     JWT_EXPIRES_MINUTES = 60
     COOKIE_SECURE = False
     SOCKETIO_CORS_ORIGINS = os.environ.get("CORS_ORIGINS", "http://localhost:5173").split(",")
+    SOCKETIO_ASYNC_MODE = os.environ.get("SOCKETIO_ASYNC_MODE", "threading")
+    PROXY_HOPS = int(os.environ.get("PROXY_HOPS", "0"))  
+    SQLALCHEMY_ENGINE_OPTIONS = {
+        "pool_pre_ping": True,
+        "pool_size": int(os.environ.get("DB_POOL_SIZE", "10")),
+        "max_overflow": int(os.environ.get("DB_MAX_OVERFLOW", "10")),
+    }
     REDIS_URL = os.environ.get("REDIS_URL")
     PRESENCE_TTL_SECONDS = 30
     PRESENCE_HEARTBEAT_SECONDS = 10
@@ -65,7 +73,7 @@ class E2EConfig(TestingConfig):
 
 class ProductionConfig(Config):
     DEBUG = False
-    COOKIE_SECURE = True
+    COOKIE_SECURE = os.environ.get("COOKIE_SECURE", "1") == "1"
 
 
 config_by_name = {
@@ -74,3 +82,17 @@ config_by_name = {
     "production": ProductionConfig,
     "e2e": E2EConfig,
 }
+
+
+def missing_production_settings(cfg):
+    """Problems that should stop a production process from starting."""
+    problems = [
+        key
+        for key in ("SECRET_KEY", "JWT_SECRET_KEY", "TOKEN_ENCRYPTION_KEY", "SQLALCHEMY_DATABASE_URI", "REDIS_URL")
+        if not cfg.get(key)
+    ]
+    if cfg.get("SECRET_KEY") == DEV_SECRET_KEY:
+        problems.append("SECRET_KEY (still the development default)")
+    if cfg.get("JWT_SECRET_KEY") and len(cfg["JWT_SECRET_KEY"]) < 32:
+        problems.append("JWT_SECRET_KEY (shorter than 32 characters)")
+    return problems
