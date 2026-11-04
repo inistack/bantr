@@ -82,8 +82,10 @@ services:
     depends_on:
       api1:
         condition: service_healthy
+        restart: true
       api2:
         condition: service_healthy
+        restart: true
     restart: unless-stopped
 
 volumes:
