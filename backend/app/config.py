@@ -7,6 +7,7 @@ load_dotenv()
 
 DEV_SECRET_KEY = "dev-only-change-me"
 
+
 class Config:
     SECRET_KEY = os.environ.get("SECRET_KEY", DEV_SECRET_KEY)
     SQLALCHEMY_DATABASE_URI = os.environ.get("DATABASE_URL")
@@ -18,7 +19,7 @@ class Config:
     COOKIE_SECURE = False
     SOCKETIO_CORS_ORIGINS = os.environ.get("CORS_ORIGINS", "http://localhost:5173").split(",")
     SOCKETIO_ASYNC_MODE = os.environ.get("SOCKETIO_ASYNC_MODE", "threading")
-    PROXY_HOPS = int(os.environ.get("PROXY_HOPS", "0"))  
+    PROXY_HOPS = int(os.environ.get("PROXY_HOPS", "0"))
     SQLALCHEMY_ENGINE_OPTIONS = {
         "pool_pre_ping": True,
         "pool_size": int(os.environ.get("DB_POOL_SIZE", "10")),
@@ -88,7 +89,13 @@ def missing_production_settings(cfg):
     """Problems that should stop a production process from starting."""
     problems = [
         key
-        for key in ("SECRET_KEY", "JWT_SECRET_KEY", "TOKEN_ENCRYPTION_KEY", "SQLALCHEMY_DATABASE_URI", "REDIS_URL")
+        for key in (
+            "SECRET_KEY",
+            "JWT_SECRET_KEY",
+            "TOKEN_ENCRYPTION_KEY",
+            "SQLALCHEMY_DATABASE_URI",
+            "REDIS_URL",
+        )
         if not cfg.get(key)
     ]
     if cfg.get("SECRET_KEY") == DEV_SECRET_KEY:

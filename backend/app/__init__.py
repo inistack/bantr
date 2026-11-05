@@ -21,7 +21,7 @@ def create_app(config_name=None):
         problems = missing_production_settings(app.config)
         if problems:
             raise RuntimeError("Refusing to start in production. Fix: " + ", ".join(problems))
-        
+
     from app.logging_config import configure_logging
 
     configure_logging(app.config["LOG_FORMAT"], app.config["LOG_LEVEL"])
