@@ -15,14 +15,13 @@ FROM python:3.14-slim
 ENV PATH="/app/.venv/bin:$PATH" \
     PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
-    APP_ENV=production \
-    GUNICORN_CMD_ARGS="--bind 0.0.0.0:5000"
+    APP_ENV=production
 RUN useradd --create-home --uid 10001 app
 WORKDIR /app
 COPY --from=builder /app/.venv /app/.venv
 COPY app ./app
 COPY migrations ./migrations
-COPY wsgi.py ./
+COPY gunicorn.conf.py wsgi.py ./
 USER app
 EXPOSE 5000
-CMD ["gunicorn", "wsgi:app", "--worker-class", "gthread", "--workers", "1", "--threads", "100"]
+CMD ["gunicorn", "-c", "gunicorn.conf.py", "wsgi:app"]
