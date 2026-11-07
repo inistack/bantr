@@ -39,6 +39,7 @@ class Config:
     LOG_LEVEL = os.environ.get("LOG_LEVEL", "INFO")
     METRICS_TOKEN = os.environ.get("METRICS_TOKEN")
     SOCKETIO_CHANNEL = os.environ.get("SOCKETIO_CHANNEL", "bantr")
+    SOCKETIO_USE_QUEUE = os.environ.get("SOCKETIO_USE_QUEUE", "1") == "1"
 
 
 class DevelopmentConfig(Config):

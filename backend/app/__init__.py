@@ -43,9 +43,16 @@ def create_app(config_name=None):
         app,
         async_mode=app.config["SOCKETIO_ASYNC_MODE"],
         cors_allowed_origins=app.config.get("SOCKETIO_CORS_ORIGINS"),
-        message_queue=app.config["REDIS_URL"],
+        message_queue=app.config["REDIS_URL"] if app.config["SOCKETIO_USE_QUEUE"] else None,
         channel=app.config["SOCKETIO_CHANNEL"],
         logger=False,
+    )
+    structlog.get_logger("app").info(
+        "app.configured",
+        env=config_name,
+        async_mode=app.config["SOCKETIO_ASYNC_MODE"],
+        message_queue=bool(app.config["REDIS_URL"] and app.config["SOCKETIO_USE_QUEUE"]),
+        threads=os.environ.get("GUNICORN_THREADS"),
     )
     from app.rate_limit import limiter
 
