@@ -3,7 +3,7 @@ set -a; source ../.env.compose; set +a
 export DATABASE_URL="postgresql+psycopg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@localhost:55432/${POSTGRES_DB}"
 export BASE=http://localhost:8080
 
-tok()    { poetry run python -m scripts.dev_token "$1"; }
+tok()    { poetry run python -m scripts.dev_token "$1" | tail -n 1; }
 jid()    { python3 -c "import sys,json; print(json.load(sys.stdin)['id'])"; }
 pick()   { python3 -c "import sys,json; k,v=sys.argv[1:3]; print(next((x['id'] for x in json.load(sys.stdin) if x[k]==v), ''))" "$@"; }
 post()   { curl -s -X POST "$BASE$1" -H "Authorization: Bearer $2" -H "Content-Type: application/json" -d "$3"; }

@@ -1,6 +1,7 @@
 import io
 import json
 import logging
+import sys
 
 import structlog
 
@@ -101,3 +102,8 @@ def test_json_format_emits_one_object_per_line_even_for_standard_logging():
         assert second["event"] == "plain library message" and second["level"] == "warning"
     finally:
         configure_logging("console", "WARNING")
+
+
+def test_logs_go_to_stderr_so_stdout_stays_clean_for_command_line_tools():
+    handler = configure_logging("console", "WARNING")
+    assert handler.stream is sys.stderr

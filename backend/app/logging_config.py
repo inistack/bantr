@@ -31,7 +31,7 @@ def configure_logging(log_format: str = "console", level: str = "INFO"):
     else:
         renderers = [structlog.dev.ConsoleRenderer(colors=sys.stdout.isatty())]
 
-    handler = logging.StreamHandler(sys.stdout)
+    handler = logging.StreamHandler(sys.stderr)
     handler.setFormatter(
         structlog.stdlib.ProcessorFormatter(
             foreign_pre_chain=shared,
