@@ -17,6 +17,11 @@ from collections import Counter
 import aiohttp
 import socketio
 
+
+CONNECT_TIMEOUT = float(os.environ.get("LT_CONNECT_TIMEOUT", "30"))
+HOLD = float(os.environ.get("LT_HOLD", "8"))
+attempted = 0
+
 if len(sys.argv) < 3:
     sys.exit("usage: python -m scripts.loadtest CLIENTS MESSAGES [RATE]")
 CLIENTS, MESSAGES = int(sys.argv[1]), int(sys.argv[2])
@@ -40,22 +45,31 @@ async def on_message(data):
             received += 1
 
 
+async def connect_and_join(sio):
+    await sio.connect(BASE, auth={"token": TOKEN}, transports=["websocket"], wait_timeout=20)
+    ack = await sio.call("channel.join", {"workspace_id": WS, "channel_id": CH}, timeout=20)
+    if not ack.get("ok"):
+        raise RuntimeError(f"join refused: {ack}")
+
+
 async def open_client(gate, failures, connect_ms):
+    global attempted
     async with gate:
         sio = socketio.AsyncClient(reconnection=False)
         sio.on("message.sent", on_message)
         began = time.perf_counter()
         try:
-            await sio.connect(BASE, auth={"token": TOKEN}, transports=["websocket"], wait_timeout=20)
-            ack = await sio.call("channel.join", {"workspace_id": WS, "channel_id": CH}, timeout=20)
-            if not ack.get("ok"):
-                raise RuntimeError(f"join refused: {ack}")
+            await asyncio.wait_for(connect_and_join(sio), timeout=CONNECT_TIMEOUT)
         except Exception as exc:
             failures[type(exc).__name__] += 1
             with contextlib.suppress(Exception):
-                await sio.disconnect()
-            return None
-        connect_ms.append((time.perf_counter() - began) * 1000)
+                await asyncio.wait_for(sio.disconnect(), timeout=5)
+            sio = None
+        else:
+            connect_ms.append((time.perf_counter() - began) * 1000)
+        attempted += 1
+        if attempted % 25 == 0 or attempted == CLIENTS:
+            print(f"  {attempted}/{CLIENTS} attempted, {sum(failures.values())} failed", flush=True)
         return sio
 
 
@@ -92,7 +106,17 @@ def pct(values, p):
     return ordered[min(len(ordered) - 1, int(len(ordered) * p / 100))]
 
 
+async def preflight():
+    timeout = aiohttp.ClientTimeout(total=10)
+    async with aiohttp.ClientSession(timeout=timeout) as session:
+        async with session.get(f"{BASE}/workspaces/{WS}", headers={"Authorization": f"Bearer {TOKEN}"}) as r:
+            if r.status != 200:
+                sys.exit(f"preflight failed: GET /workspaces/{WS} gave {r.status}. "
+                         "Expired token? Run `source scripts/compose_env.sh` again.")
+
+
 async def main():
+    await preflight()
     soft, _ = resource.getrlimit(resource.RLIMIT_NOFILE)
     if CLIENTS + 50 > soft:
         print(f"warning: open-file limit is {soft}; run `ulimit -n 8192` first")
@@ -104,7 +128,8 @@ async def main():
     clients = [c for c in opened if c is not None]
     print(f"connected {len(clients)}/{CLIENTS} in {time.perf_counter() - began:.1f}s; "
           f"failures: {dict(failures) or 'none'}")
-    await asyncio.sleep(3)  # let the join broadcasts settle
+    print(f"holding {HOLD:.0f}s: run `sockets` and `docker stats --no-stream` now", flush=True)
+    await asyncio.sleep(HOLD)
 
     print("sending... (take a `docker stats --no-stream` now)")
     statuses, http_ms = Counter(), []

@@ -13,6 +13,7 @@ sayn()   { for i in $(seq 1 "$1"); do say "$2 $i"; sleep 0.4; done; echo; }
 burst()  ( for i in $(seq 1 8); do say "burst $i" & done; wait; echo )
 mark()   { MARK=$(date -u +%Y-%m-%dT%H:%M:%SZ); }
 spread() { dc logs --no-log-prefix --since "$MARK" proxy | grep -E 'POST /workspaces/[0-9a-f-]+/channels/[0-9a-f-]+/messages' | grep -o 'upstream=[^ ]*' | sort | uniq -c; }
+sockets() { for s in api1 api2; do echo "$s: $(dc exec -T $s python -c "import urllib.request as u; print(next(l.split()[-1] for l in u.urlopen('http://127.0.0.1:5000/metrics').read().decode().splitlines() if l.startswith('bantr_socket_connections')))")"; done; }
 
 if ! curl -sf "$BASE/health" > /dev/null; then
   echo "nothing answering at $BASE/health: is the stack up?"
