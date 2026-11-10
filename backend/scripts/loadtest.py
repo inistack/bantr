@@ -4,6 +4,7 @@ MESSAGES messages over HTTP at RATE per second; every client records when each o
 Usage, from backend/ after `source scripts/compose_env.sh`:
     python -m scripts.loadtest CLIENTS MESSAGES [RATE]
 """
+
 import asyncio
 import contextlib
 import os
@@ -17,7 +18,6 @@ from collections import Counter
 import aiohttp
 import socketio
 
-
 CONNECT_TIMEOUT = float(os.environ.get("LT_CONNECT_TIMEOUT", "30"))
 HOLD = float(os.environ.get("LT_HOLD", "8"))
 attempted = 0
@@ -30,8 +30,8 @@ BASE, TOKEN = os.environ["BASE"], os.environ["OWNER"]
 WS, CH = os.environ["WS"], os.environ["CH"]
 
 PREFIX = f"lt-{uuid.uuid4().hex[:6]}-"
-sent_at = {}         # message index -> perf_counter() just before its POST
-latencies_ms = []    # one entry per (message, client) delivery
+sent_at = {}  # message index -> perf_counter() just before its POST
+latencies_ms = []  # one entry per (message, client) delivery
 received = 0
 
 
@@ -39,7 +39,7 @@ async def on_message(data):
     global received
     body = data["message"]["body"]
     if body.startswith(PREFIX):
-        started = sent_at.get(int(body[len(PREFIX):]))
+        started = sent_at.get(int(body[len(PREFIX) :]))
         if started is not None:
             latencies_ms.append((time.perf_counter() - started) * 1000)
             received += 1
@@ -109,10 +109,14 @@ def pct(values, p):
 async def preflight():
     timeout = aiohttp.ClientTimeout(total=10)
     async with aiohttp.ClientSession(timeout=timeout) as session:
-        async with session.get(f"{BASE}/workspaces/{WS}", headers={"Authorization": f"Bearer {TOKEN}"}) as r:
+        async with session.get(
+            f"{BASE}/workspaces/{WS}", headers={"Authorization": f"Bearer {TOKEN}"}
+        ) as r:
             if r.status != 200:
-                sys.exit(f"preflight failed: GET /workspaces/{WS} gave {r.status}. "
-                         "Expired token? Run `source scripts/compose_env.sh` again.")
+                sys.exit(
+                    f"preflight failed: GET /workspaces/{WS} gave {r.status}. "
+                    "Expired token? Run `source scripts/compose_env.sh` again."
+                )
 
 
 async def main():
@@ -124,10 +128,14 @@ async def main():
     failures, connect_ms = Counter(), []
     gate = asyncio.Semaphore(25)  # open connections in small batches, not all at once
     began = time.perf_counter()
-    opened = await asyncio.gather(*(open_client(gate, failures, connect_ms) for _ in range(CLIENTS)))
+    opened = await asyncio.gather(
+        *(open_client(gate, failures, connect_ms) for _ in range(CLIENTS))
+    )
     clients = [c for c in opened if c is not None]
-    print(f"connected {len(clients)}/{CLIENTS} in {time.perf_counter() - began:.1f}s; "
-          f"failures: {dict(failures) or 'none'}")
+    print(
+        f"connected {len(clients)}/{CLIENTS} in {time.perf_counter() - began:.1f}s; "
+        f"failures: {dict(failures) or 'none'}"
+    )
     print(f"holding {HOLD:.0f}s: run `sockets` and `docker stats --no-stream` now", flush=True)
     await asyncio.sleep(HOLD)
 
@@ -147,8 +155,10 @@ async def main():
     print(f"POST status codes : {dict(statuses)}")
     print(f"POST ms           : p50 {pct(http_ms, 50):.0f}   p95 {pct(http_ms, 95):.0f}")
     print(f"deliveries        : {received}/{expected} ({ratio:.1f}%)")
-    print(f"delivery latency  : p50 {pct(latencies_ms, 50):.0f}   p95 {pct(latencies_ms, 95):.0f}   "
-          f"p99 {pct(latencies_ms, 99):.0f}   max {max(latencies_ms, default=float('nan')):.0f} ms")
+    print(
+        f"delivery latency  : p50 {pct(latencies_ms, 50):.0f}   p95 {pct(latencies_ms, 95):.0f}   "
+        f"p99 {pct(latencies_ms, 99):.0f}   max {max(latencies_ms, default=float('nan')):.0f} ms"
+    )
     if latencies_ms:
         print(f"mean latency      : {statistics.fmean(latencies_ms):.0f} ms")
 

@@ -40,6 +40,8 @@ class Config:
     METRICS_TOKEN = os.environ.get("METRICS_TOKEN")
     SOCKETIO_CHANNEL = os.environ.get("SOCKETIO_CHANNEL", "bantr")
     SOCKETIO_USE_QUEUE = os.environ.get("SOCKETIO_USE_QUEUE", "1") == "1"
+    FRONTEND_URL = os.environ.get("FRONTEND_URL", "/")
+    DEV_LOGIN_ENABLED = os.environ.get("DEV_LOGIN_ENABLED", "0") == "1"
 
 
 class DevelopmentConfig(Config):
@@ -58,6 +60,8 @@ class TestingConfig(Config):
     MESSAGE_RATE_LIMIT = "100000 per second"
     LOG_LEVEL = "WARNING"
     METRICS_TOKEN = None
+    FRONTEND_URL = "/"
+    DEV_LOGIN_ENABLED = False
 
 
 class E2EConfig(TestingConfig):
@@ -103,4 +107,6 @@ def missing_production_settings(cfg):
         problems.append("SECRET_KEY (still the development default)")
     if cfg.get("JWT_SECRET_KEY") and len(cfg["JWT_SECRET_KEY"]) < 32:
         problems.append("JWT_SECRET_KEY (shorter than 32 characters)")
+    if cfg.get("DEV_LOGIN_ENABLED"):
+        problems.append("DEV_LOGIN_ENABLED (must be off in production)")
     return problems

@@ -27,3 +27,8 @@ def test_the_development_secret_key_is_rejected():
 def test_a_short_jwt_key_is_rejected():
     problems = missing_production_settings({**GOOD, "JWT_SECRET_KEY": "short"})
     assert any("shorter than 32" in problem for problem in problems)
+
+
+def test_dev_login_must_be_off_in_production():
+    problems = missing_production_settings({**GOOD, "DEV_LOGIN_ENABLED": True})
+    assert any("DEV_LOGIN_ENABLED" in problem for problem in problems)
