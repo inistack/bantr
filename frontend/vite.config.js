@@ -1,5 +1,6 @@
 import react from "@vitejs/plugin-react";
 import { defineConfig } from "vitest/config";
+import process from "node:process";
 
 const api = process.env.VITE_API_TARGET || "http://localhost:5000";
 

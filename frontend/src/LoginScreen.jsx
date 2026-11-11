@@ -7,16 +7,20 @@ const MESSAGES = {
   no_verified_email: "Your GitHub account has no verified email address.",
 };
 
+// The backend sends people back here with ?login_error=... when GitHub sign-in fails.
+function noticeFromUrl() {
+  const code = new URLSearchParams(window.location.search).get("login_error");
+  return code ? (MESSAGES[code] ?? "Sign-in failed.") : null;
+}
+
 export default function LoginScreen() {
   const { devLogin } = useAuth();
-  const [notice, setNotice] = useState(null);
+  const [notice, setNotice] = useState(noticeFromUrl);
   const [email, setEmail] = useState("");
 
-  // The backend sends people back here with ?login_error=... when GitHub sign-in fails.
+  // Tidy the address bar. This updates the browser, not React state.
   useEffect(() => {
-    const code = new URLSearchParams(window.location.search).get("login_error");
-    if (code) {
-      setNotice(MESSAGES[code] ?? "Sign-in failed.");
+    if (new URLSearchParams(window.location.search).has("login_error")) {
       window.history.replaceState({}, "", window.location.pathname);
     }
   }, []);
