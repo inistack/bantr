@@ -1,0 +1,8 @@
+:root { font-family: system-ui, sans-serif; color-scheme: light dark; }
+body { margin: 0; }
+main { max-width: 40rem; margin: 2rem auto; padding: 0 1rem; }
+.center { text-align: center; margin-top: 20vh; }
+.error { color: #b00020; }
+.bar { display: flex; justify-content: space-between; align-items: center; }
+button, .button { font: inherit; padding: 0.4rem 0.8rem; cursor: pointer; }
+form { margin-top: 1.5rem; display: flex; gap: 0.5rem; justify-content: center; align-items: center; }
