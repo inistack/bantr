@@ -1,16 +1,17 @@
+import Chat from "./Chat.jsx";
 import { useAuth } from "./auth-context.js";
 
 export default function Home() {
   const { user, logout } = useAuth();
   return (
-    <main>
+    <div className="shell">
       <header className="bar">
+        <strong>bantr</strong>
         <span>
-          Signed in as <strong>{user.name}</strong>
+          Signed in as <strong>{user.name}</strong> <button onClick={logout}>Sign out</button>
         </span>
-        <button onClick={logout}>Sign out</button>
       </header>
-      <p>Workspaces and channels arrive in the next step.</p>
-    </main>
+      <Chat />
+    </div>
   );
 }

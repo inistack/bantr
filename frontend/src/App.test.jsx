@@ -3,24 +3,9 @@ import userEvent from "@testing-library/user-event";
 import { afterEach, expect, test, vi } from "vitest";
 
 import App from "./App.jsx";
+import { ADA, mockServer, signedOut } from "./test-utils.js";
 
-const ADA = { id: "u1", email: "ada@dev.test", name: "ada" };
-
-// A tiny fake server: maps "METHOD /path" to a function returning { status, body }.
-function mockServer(routes) {
-  vi.stubGlobal(
-    "fetch",
-    vi.fn(async (path, options = {}) => {
-      const key = `${options.method ?? "GET"} ${path}`;
-      const handler = routes[key];
-      if (!handler) throw new Error(`unexpected request: ${key}`);
-      const { status = 200, body = null } = handler(options);
-      return { ok: status < 400, status, statusText: String(status), json: async () => body };
-    }),
-  );
-}
-
-const signedOut = () => ({ status: 401, body: { error: "Authentication required" } });
+const noWorkspaces = () => ({ body: [] });
 
 afterEach(() => {
   vi.unstubAllGlobals();
@@ -34,7 +19,7 @@ test("an anonymous visitor sees the sign-in screen", async () => {
 });
 
 test("a visitor with a valid session goes straight in", async () => {
-  mockServer({ "GET /auth/me": () => ({ body: ADA }) });
+  mockServer({ "GET /auth/me": () => ({ body: ADA }), "GET /workspaces": noWorkspaces });
   render(<App />);
   expect(await screen.findByText(/Signed in as/)).toBeInTheDocument();
   expect(screen.getByText("ada")).toBeInTheDocument();
@@ -44,6 +29,7 @@ test("dev login signs in, and sign out returns to the sign-in screen", async () 
   const user = userEvent.setup();
   mockServer({
     "GET /auth/me": signedOut,
+    "GET /workspaces": noWorkspaces,
     "POST /auth/dev-login": (options) => {
       expect(JSON.parse(options.body)).toEqual({ email: "ada@dev.test" });
       return { body: ADA };
@@ -67,9 +53,12 @@ test("a failed GitHub sign-in shows a message and cleans the URL", async () => {
 });
 
 test("an unreachable server is reported, not mistaken for being signed out", async () => {
-  vi.stubGlobal("fetch", vi.fn(async () => {
-    throw new TypeError("Failed to fetch");
-  }));
+  vi.stubGlobal(
+    "fetch",
+    vi.fn(async () => {
+      throw new TypeError("Failed to fetch");
+    }),
+  );
   render(<App />);
   expect(await screen.findByRole("alert")).toHaveTextContent("Cannot reach the server");
 });
