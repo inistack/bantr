@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import Messages from "./Messages.jsx";
 
 import InlineForm from "./InlineForm.jsx";
 import { addMember, createChannel, createWorkspace, listChannels, listWorkspaces } from "./backend.js";
@@ -139,13 +140,17 @@ export default function Chat() {
       <section className="pane">
         {workspace === null && <p>Create a workspace to get started.</p>}
         {workspace && channels && !channel && <p>Select or create a channel.</p>}
-        {channel && (
+                {channel && (
           <>
             <h2># {channel.name}</h2>
             <small>
               {workspace.name} · you are {workspace.role}
             </small>
-            <p>Messages arrive in the next step.</p>
+            <Messages
+              key={`${workspace.id}:${channel.id}`}
+              workspaceId={workspace.id}
+              channelId={channel.id}
+            />
           </>
         )}
       </section>
