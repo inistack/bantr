@@ -8,5 +8,7 @@ export const socket = io({ autoConnect: false, transports: ["websocket"] });
 
 // Development only: lets you poke the connection from the browser console, e.g. __socket.disconnect().
 if (import.meta.env.DEV) {
-  window.__socket = socket.disconnect();
+  window.__socket = socket;
+  socket.on("connect_error", (error) => console.warn("[socket] connect_error:", error.message));
+  socket.on("disconnect", (reason) => console.info("[socket] disconnected:", reason));
 }
