@@ -77,3 +77,16 @@ def test_heartbeat_pass_announces_users_whose_connections_died(app, client, make
     with app.app_context():
         run_heartbeat_once()
     assert event(ws, ghost, False) in updates(s_owner)
+
+
+def test_a_workspace_created_after_connecting_is_subscribed_and_shows_you_online(app, client, make_user):
+    owner, bob = make_user("owner@test.dev"), make_user("bob@test.dev")
+    s_owner = socket_connect(app, owner)  # connects before the workspace exists
+    ws = create_ws(client, owner)
+    assert presence_list(s_owner, ws) == {"ok": True, "online": [str(owner.id)]}
+    add_member(client, owner, ws, "bob@test.dev")
+    s_owner.get_received()
+    s_bob = socket_connect(app, bob)
+    assert event(ws, bob, True) in updates(s_owner)
+    s_bob.disconnect()
+    assert event(ws, bob, False) in updates(s_owner)

@@ -75,6 +75,24 @@ def on_disconnect(sid, user_id):
         current_app.logger.exception("presence: could not unregister connection")
 
 
+def _subscribe(sid, user_id, workspace_id):
+    """Late subscription: this connection learned of the workspace after it connected."""
+    key = str(workspace_id)
+    join_room(workspace_room(key))
+    known = connection_workspaces.setdefault(sid, [])
+    if key in known:
+        return
+    known.append(key)  # from now on the heartbeat and the disconnect handler cover it too
+    r = get_redis()
+    if r is None:
+        return
+    try:
+        for ws in presence_service.add_connection(r, [key], str(user_id), sid, time.time(), _ttl()):
+            announce(ws, user_id, True, "subscribe", skip_sid=sid)
+    except redis.RedisError:
+        current_app.logger.exception("presence: could not register late subscription")
+
+
 @socketio.on("presence.list")
 def on_presence_list(data=None):
     try:
@@ -84,6 +102,7 @@ def on_presence_list(data=None):
 
     user_id = connected_users.get(request.sid)
     if user_id is None or get_membership(user_id, workspace_id) is None:
+        _subscribe(request.sid, user_id, workspace_id)
         return {"ok": False, "error": "Workspace not found"}
 
     r = get_redis()
