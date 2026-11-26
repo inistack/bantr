@@ -18,3 +18,5 @@ export const sendMessage = (workspaceId, channelId, body) =>
     method: "POST",
     body: { body },
   });
+
+export const listMembers = (workspaceId) => api(`/workspaces/${workspaceId}/members`);

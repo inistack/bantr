@@ -22,3 +22,8 @@ button, .button { font: inherit; padding: 0.3rem 0.7rem; cursor: pointer; }
 .compose { display: flex; gap: 0.5rem; margin-top: 0.6rem; }
 .compose input { flex: 1; }
 .badge { font-size: 0.8rem; margin-right: 0.8rem; }
+.members li { padding: 0.1rem 0; }
+.dot { margin-right: 0.4rem; }
+.dot.on { color: #1a7f37; }
+.dot.off { opacity: 0.5; }
+.typing { min-height: 1.2rem; margin: 0.3rem 0 0; font-size: 0.85rem; opacity: 0.8; }

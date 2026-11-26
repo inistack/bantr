@@ -37,10 +37,10 @@ test("opening a channel joins its room, then shows the recent history", async ()
   setup();
   expect(await screen.findByText("hello")).toBeInTheDocument();
   expect(screen.getByText("world")).toBeInTheDocument();
-  expect(socket.sent[0]).toEqual({
-    event: "channel.join",
-    payload: { workspace_id: "w1", channel_id: "c1" },
-  });
+  const joins = socket.sent.filter((s) => s.event === "channel.join");
+  expect(joins).toEqual([
+    { event: "channel.join", payload: { workspace_id: "w1", channel_id: "c1" } },
+  ]);
 });
 
 test("a live message appears once, even if it is delivered twice", async () => {

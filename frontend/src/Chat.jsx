@@ -1,13 +1,18 @@
 import { useEffect, useState } from "react";
-import Messages from "./Messages.jsx";
 
 import InlineForm from "./InlineForm.jsx";
+import Members from "./Members.jsx";
+import Messages from "./Messages.jsx";
+import { useAuth } from "./auth-context.js";
 import { addMember, createChannel, createWorkspace, listChannels, listWorkspaces } from "./backend.js";
 import { slugify } from "./slugify.js";
+import { useMembers } from "./useMembers.js";
+import { usePresence } from "./usePresence.js";
 
 const CAN_MANAGE = new Set(["owner", "admin"]);
 
 export default function Chat() {
+  const { user } = useAuth();
   const [workspaces, setWorkspaces] = useState(null); // null while loading
   const [workspaceId, setWorkspaceId] = useState(null);
   const [channelState, setChannelState] = useState({ workspaceId: null, items: null });
@@ -49,6 +54,9 @@ export default function Chat() {
     };
   }, [workspaceId]);
 
+  const { members, reload: reloadMembers } = useMembers(workspaceId);
+  const online = usePresence(workspaceId);
+
   // Derived values: no extra state to keep in sync.
   const workspace = workspaces?.find((w) => w.id === workspaceId) ?? null;
   const channels = channelState.workspaceId === workspaceId ? channelState.items : null;
@@ -64,6 +72,11 @@ export default function Chat() {
     const created = await createChannel(workspaceId, slugify(name));
     setChannelState((state) => ({ ...state, items: [...state.items, created] }));
     setChannelId(created.id);
+  }
+
+  async function handleAddMember(email) {
+    await addMember(workspace.id, email.trim().toLowerCase());
+    reloadMembers();
   }
 
   if (loadError) {
@@ -129,10 +142,12 @@ export default function Chat() {
                   placeholder="bob@example.com"
                   submit="Add member"
                   successText="Added"
-                  onSubmit={(email) => addMember(workspace.id, email.trim().toLowerCase())}
+                  onSubmit={handleAddMember}
                 />
               </>
             )}
+            <h2>Members</h2>
+            <Members members={members} online={online} />
           </>
         )}
       </aside>
@@ -140,7 +155,7 @@ export default function Chat() {
       <section className="pane">
         {workspace === null && <p>Create a workspace to get started.</p>}
         {workspace && channels && !channel && <p>Select or create a channel.</p>}
-                {channel && (
+        {channel && (
           <>
             <h2># {channel.name}</h2>
             <small>
@@ -150,6 +165,8 @@ export default function Chat() {
               key={`${workspace.id}:${channel.id}`}
               workspaceId={workspace.id}
               channelId={channel.id}
+              members={members}
+              selfId={user.id}
             />
           </>
         )}
